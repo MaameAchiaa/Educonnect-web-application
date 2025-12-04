@@ -49,7 +49,7 @@ app.post('/api/register', async (req, res) => {
     
     // Check if user already exists
     const existingUser = await User.findOne({ 
-      $or: [{ username }, { email }] 
+      $or: [{ username: { $eq: username } }, { email: { $eq: email } }] 
     });
     
     if (existingUser) {
