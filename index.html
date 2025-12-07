@@ -1,0 +1,2343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EduConnect Management System</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<style>
+  /* File Upload Styles */
+.file-upload-section {
+  border: 2px solid #4CAF50;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
+}
+
+.file-upload-label {
+  cursor: pointer;
+  display: inline-block;
+}
+
+.file-upload-label:hover {
+  opacity: 0.9;
+}
+
+.uploaded-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #e8f5e9;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin: 10px 0;
+  border-left: 4px solid #4CAF50;
+}
+
+.uploaded-file span {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.file-upload-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+}
+
+.file-upload-btn:hover {
+  background-color: #45a049;
+}
+
+.submission-status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.submission-submitted {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.submission-pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+  /* Reset some styles for consistency */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    line-height: 1.6;
+  }
+
+  /* Header Styles */
+  header {
+    background-color: #4CAF50;
+    padding: 20px;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .logo {
+    height: 50px;
+    width: auto;
+    border-radius: 5px;
+  }
+
+  .form-group{
+    text-align: center;
+  }
+
+  .form-group > input{
+    text-align: left;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logout-btn {
+    background-color: #fff;
+    color: #4CAF50;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  /* Container Styles */
+  #login-container, #dashboard, #signup-container, #forgot-password-container {
+    max-width: 900px;
+    margin: 30px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  /* Auth Navigation */
+  .auth-nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .auth-nav button {
+    background: none;
+    border: none;
+    color: #4CAF50;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+
+  .auth-nav button:hover {
+    background-color: #f0f2f5;
+  }
+
+  .auth-nav button.active {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  /* Form Styles */
+  #login-form, #signup-form, #forgot-password-form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+
+    .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%; 
+    max-width: 100%; 
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: #4CAF50;
+    outline: none;
+  }
+
+  .form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .btn {
+    width: 100%; 
+    max-width: 400px; 
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+  }
+
+  .btn:hover {
+    background-color: #45a049;
+  }
+
+  .btn-secondary {
+    color: green;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background-color: white;
+  }
+
+  .btn-danger {
+    background-color: #f44336;
+  }
+
+  .btn-danger:hover {
+    background-color: #d32f2f;
+  }
+
+  /* Navigation Styles */
+  nav {
+    display: flex;
+    justify-content: center;
+    background-color: #333;
+    margin-top: 20px;
+    border-radius: 4px;
+    flex-wrap: wrap;
+  }
+
+  nav a {
+    color: white;
+    padding: 14px 20px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+  }
+
+  nav a:hover {
+    background-color: #575757;
+  }
+
+  /* Role-based Sections */
+  .section {
+    display: none;
+    margin-top: 20px;
+  }
+
+  .section h2 {
+    margin-bottom: 15px;
+    color: #4CAF50;
+  }
+
+  /* Active section visible */
+  .active {
+    display: block;
+  }
+
+  /* Dashboard Cards */
+  .dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    transition: transform 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+  }
+
+  .card h3 {
+    color: #4CAF50;
+    margin-bottom: 10px;
+  }
+
+  /* Table Styles */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+
+  table th, table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+  }
+
+  table tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  /* Announcement Styles */
+  .announcement {
+    background-color: #f9f9f9;
+    border-left: 4px solid #4CAF50;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+  }
+
+  .announcement h4 {
+    margin-bottom: 5px;
+    color: #333;
+  }
+
+  .announcement p {
+    color: #666;
+  }
+
+  .announcement .date {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+  }
+
+  /* Status indicators */
+  .status-pending {
+    color: #ff9800;
+    font-weight: 600;
+  }
+
+  .status-completed {
+    color: #4CAF50;
+    font-weight: 600;
+  }
+
+  .status-overdue {
+    color: #f44336;
+    font-weight: 600;
+  }
+
+  /* Loading and Success States */
+  .loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .success-message {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+
+  .error-message {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+
+  /* Responsive adjustments */
+  @media(max-width: 768px) {
+    #login-container, #dashboard, #signup-container, #forgot-password-container {
+      margin: 20px;
+      padding: 20px;
+    }
+
+    nav {
+      flex-direction: column;
+    }
+
+    nav a {
+      padding: 10px;
+      text-align: center;
+    }
+
+    .dashboard-cards {
+      grid-template-columns: 1fr;
+    }
+
+    header {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+    }
+
+    .header-left {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .auth-nav {
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+
+   /* Center form elements */
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .form-group {
+    width: 100%;
+    max-width: 400px;
+    margin: 15px auto;
+    text-align: center;
+  }
+  
+  .form-group label {
+    display: block;
+    text-align: center;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+  }
+  
+  .btn {
+    width: 100%;
+    max-width: 400px;
+    margin: 20px auto;
+    display: block;
+  }
+  
+  /* File Upload Section Styles */
+.file-upload-section {
+  background: #f8f9fa;
+  border: 2px dashed #4CAF50;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: none; /* Initially hidden */
+}
+
+.file-upload-section.active {
+  display: block;
+}
+
+.uploaded-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #e8f5e9;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin: 10px 0;
+  border-left: 4px solid #4CAF50;
+}
+
+.uploaded-file span {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.file-upload-label {
+  cursor: pointer;
+  display: inline-block;
+}
+
+.file-upload-label:hover {
+  opacity: 0.9;
+}
+
+.file-upload-label input[type="file"] {
+  display: none;
+}
+  
+  /* Admin panel improvements */
+  .admin-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .admin-tabs button {
+    padding: 10px 20px;
+    background: #f0f0f0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .admin-tabs button.active {
+    background: #4CAF50;
+    color: white;
+  }
+  
+  /* Data tables */
+  .data-table {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 5px;
+  }
+  
+  .status-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .status-active { background: #d4edda; color: #155724; }
+  .status-pending { background: #fff3cd; color: #856404; }
+  .status-inactive { background: #f8d7da; color: #721c24; }
+  
+  /* Assignment submission modal */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+  }
+  
+  .modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  /* Responsive improvements */
+  @media (max-width: 768px) {
+    .admin-tabs {
+      flex-direction: column;
+    }
+    
+    .action-buttons {
+      flex-direction: column;
+    }
+    
+    nav {
+      flex-wrap: wrap;
+    }
+    
+    nav a {
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-left">
+      <img class="logo" src="images/logo.jpeg" alt="EduConnect Logo">
+      <h1>EduConnect Management System</h1>
+    </div>
+    <div v-if="currentUser" class="user-info">
+      <span>{{ currentUser.username }} ({{ currentUser.role }})</span>
+      <button class="logout-btn" @click="logout">Logout</button>
+    </div>
+  </header>
+
+  <!-- Login Container -->
+  <div v-if="!currentUser && currentView === 'login'" id="login-container">
+    <div class="auth-nav">
+      <button :class="{ active: authMode === 'login' }" @click="authMode = 'login'">Login</button>
+      <button :class="{ active: authMode === 'signup' }" @click="switchToSignup">Sign Up</button>
+    </div>
+
+    <h2 style="text-align:center; margin-bottom:20px;">Login to Your Account</h2>
+    
+    <div v-if="message" :class="messageClass">{{ message }}</div>
+    
+    <form id="login-form" @submit.prevent="login">
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" v-model="loginData.username" placeholder="Enter username" required />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" v-model="loginData.password" placeholder="Enter password" required />
+      </div>
+      <div class="form-group">
+        <label for="role">Select Role:</label>
+        <select id="role" v-model="loginData.role" required>
+          <option value="">--Select Role--</option>
+          <option value="teacher">Teacher</option>
+          <option value="student">Student</option>
+          <option value="parent">Parent</option>
+          <option value="admin">Administrator</option>
+        </select>
+      </div>
+      <button type="submit" class="btn" :class="{ loading: isLoading }">
+        {{ isLoading ? 'Logging in...' : 'Login' }}
+      </button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 15px;">
+      <button class="btn-secondary" @click="switchToForgotPassword">Forgot Password?</button>
+    </div>
+  </div>
+
+  <!-- Signup Container -->
+  <div v-if="!currentUser && currentView === 'signup'" id="signup-container">
+    <div class="auth-nav">
+      <button :class="{ active: authMode === 'login' }" @click="switchToLogin">Login</button>
+      <button :class="{ active: authMode === 'signup' }" @click="authMode = 'signup'">Sign Up</button>
+    </div>
+
+    <h2 style="text-align:center; margin-bottom:20px;">Create New Account</h2>
+    
+    <div v-if="message" :class="messageClass">{{ message }}</div>
+    
+    <form id="signup-form" @submit.prevent="signup">
+      <div class="form-group">
+        <label for="signup-username">Username:</label>
+        <input type="text" id="signup-username" v-model="signupData.username" placeholder="Choose a username" required />
+      </div>
+      <div class="form-group">
+        <label for="signup-email">Email:</label>
+        <input type="email" id="signup-email" v-model="signupData.email" placeholder="Enter your email" required />
+      </div>
+      <div class="form-group">
+        <label for="signup-password">Password:</label>
+        <input type="password" id="signup-password" v-model="signupData.password" placeholder="Create a password" required />
+      </div>
+      <div class="form-group">
+        <label for="signup-confirm-password">Confirm Password:</label>
+        <input type="password" id="signup-confirm-password" v-model="signupData.confirmPassword" placeholder="Confirm your password" required />
+      </div>
+      <div class="form-group">
+        <label for="signup-role">Select Role:</label>
+        <select id="signup-role" v-model="signupData.role" required>
+          <option value="">--Select Role--</option>
+          <option value="teacher">Teacher</option>
+          <option value="student">Student</option>
+          <option value="parent">Parent</option>
+          <option value="admin">Administrator</option>
+        </select>
+      </div>
+      <div class="form-group" v-if="signupData.role === 'student' || signupData.role === 'parent'">
+        <label for="student-id">Student ID (for parent/student registration):</label>
+        <input type="text" id="student-id" v-model="signupData.studentId" placeholder="Enter student ID" />
+      </div>
+      <button type="submit" class="btn" :class="{ loading: isLoading }">
+        {{ isLoading ? 'Creating Account...' : 'Create Account' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Forgot Password Container -->
+  <div v-if="!currentUser && currentView === 'forgot-password'" id="forgot-password-container">
+    <div class="auth-nav">
+      <button :class="{ active: authMode === 'login' }" @click="switchToLogin">Back to Login</button>
+    </div>
+
+    <h2 style="text-align:center; margin-bottom:20px;">Reset Your Password</h2>
+    
+    <div v-if="message" :class="messageClass">{{ message }}</div>
+    
+    <form id="forgot-password-form" @submit.prevent="resetPassword" v-if="!passwordResetSent">
+      <div class="form-group">
+        <label for="reset-email">Email Address:</label>
+        <input type="email" id="reset-email" v-model="resetData.email" placeholder="Enter your email address" required />
+      </div>
+      <button type="submit" class="btn" :class="{ loading: isLoading }">
+        {{ isLoading ? 'Sending...' : 'Send Reset Link' }}
+      </button>
+    </form>
+    
+    <div v-else class="success-message">
+      <p>Password reset instructions have been sent to your email address.</p>
+      <button class="btn" @click="switchToLogin" style="margin-top: 10px;">Return to Login</button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div v-if="currentUser" id="dashboard">
+    <div id="welcome" style="margin-bottom:20px; text-align:center; font-size:18px; font-weight:600;">
+      Welcome, {{ currentUser.username }} ({{ currentUser.role }})
+    </div>
+    
+    <nav>
+      <a @click="switchSection('overview')" :class="{ active: currentSection === 'overview' }">Overview</a>
+      <a @click="switchSection('assignments')" :class="{ active: currentSection === 'assignments' }" v-if="showAssignments">Assignments</a>
+      <a @click="switchSection('grades')" :class="{ active: currentSection === 'grades' }" v-if="showGrades">Grades</a>
+      <a @click="switchSection('schedule')" :class="{ active: currentSection === 'schedule' }" v-if="showSchedule">Schedule</a>
+      <a @click="switchSection('announcements')" :class="{ active: currentSection === 'announcements' }">Announcements</a>
+      <a @click="switchSection('admin')" :class="{ active: currentSection === 'admin' }" v-if="currentUser.role === 'admin'">Admin Panel</a>
+    </nav>
+
+    <!-- Overview Section - Role Specific -->
+<div v-if="currentSection === 'overview'" class="section active">
+  <h2>Dashboard Overview - {{ currentUser.role.toUpperCase() }}</h2>
+  
+  <!-- Teacher Overview -->
+  <div v-if="currentUser.role === 'teacher'" class="dashboard-cards">
+    <div class="card">
+      <h3>My Classes</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">{{ dashboardStats.totalClasses || 0 }}</p>
+      <p>Total classes assigned</p>
+    </div>
+    <div class="card">
+      <h3>Total Students</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #2196F3;">{{ dashboardStats.totalStudents || 0 }}</p>
+      <p>Students across all classes</p>
+    </div>
+    <div class="card">
+      <h3>Pending Assignments</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #FF9800;">{{ dashboardStats.pendingAssignments || 0 }}</p>
+      <p>Assignments to be graded</p>
+    </div>
+    <div class="card">
+      <h3>Graded Assignments</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">{{ dashboardStats.gradedAssignments || 0 }}</p>
+      <p>Assignments already graded</p>
+    </div>
+  </div>
+  
+  <!-- Student Overview -->
+  <div v-if="currentUser.role === 'student'" class="dashboard-cards">
+    <div class="card">
+      <h3>Enrolled Classes</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">{{ dashboardStats.enrolledClasses || 0 }}</p>
+      <p>Classes you're enrolled in</p>
+    </div>
+    <div class="card">
+      <h3>Pending Assignments</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #FF9800;">{{ dashboardStats.pendingAssignments || 0 }}</p>
+      <p>Assignments to submit</p>
+    </div>
+    <div class="card">
+      <h3>Submitted Assignments</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #2196F3;">{{ dashboardStats.submittedAssignments || 0 }}</p>
+      <p>Assignments submitted</p>
+    </div>
+    <div class="card">
+      <h3>Average Grade</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">{{ dashboardStats.averageGrade || 0 }}%</p>
+      <p>Your current average</p>
+    </div>
+  </div>
+  
+  <!-- Admin Overview -->
+  <div v-if="currentUser.role === 'admin'" class="dashboard-cards">
+    <div class="card">
+      <h3>Total Users</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">{{ dashboardStats.totalUsers || 0 }}</p>
+      <p>All system users</p>
+    </div>
+    <div class="card">
+      <h3>Active Teachers</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #2196F3;">{{ dashboardStats.activeTeachers || 0 }}</p>
+      <p>Teaching staff</p>
+    </div>
+    <div class="card">
+      <h3>Active Students</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #9C27B0;">{{ dashboardStats.activeStudents || 0 }}</p>
+      <p>Enrolled students</p>
+    </div>
+    <div class="card">
+      <h3>Total Classes</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #FF9800;">{{ dashboardStats.totalClasses || 0 }}</p>
+      <p>Classes created</p>
+    </div>
+  </div>
+  
+  <!-- Parent Overview -->
+  <div v-if="currentUser.role === 'parent' && childInfo" class="dashboard-cards">
+    <div class="card">
+      <h3>Child's Classes</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">{{ dashboardStats.childClasses || 0 }}</p>
+      <p>Classes enrolled</p>
+    </div>
+    <div class="card">
+      <h3>Upcoming Assignments</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #FF9800;">{{ dashboardStats.upcomingAssignments || 0 }}</p>
+      <p>Assignments due soon</p>
+    </div>
+    <div class="card">
+      <h3>Completed Assignments</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #2196F3;">{{ dashboardStats.completedAssignments || 0 }}</p>
+      <p>Assignments submitted</p>
+    </div>
+    <div class="card">
+      <h3>Child's Average</h3>
+      <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">{{ dashboardStats.childAverageGrade || 0 }}%</p>
+      <p>Current average grade</p>
+    </div>
+  </div>
+  
+  <!-- Quick Actions -->
+  <div style="margin-top: 30px;">
+    <h3>Quick Actions</h3>
+    <div class="dashboard-cards">
+      <div v-if="currentUser.role === 'teacher'" class="card" style="cursor: pointer;" @click="switchSection('assignments')">
+        <h3>Create Assignment</h3>
+        <p>Create new assignment for your class</p>
+      </div>
+      <div v-if="currentUser.role === 'student' && dashboardStats.pendingAssignments > 0" class="card" style="cursor: pointer;" @click="switchSection('assignments')">
+        <h3>Submit Assignment</h3>
+        <p>You have {{ dashboardStats.pendingAssignments }} pending assignments</p>
+      </div>
+      <div v-if="currentUser.role === 'admin'" class="card" style="cursor: pointer;" @click="switchSection('admin')">
+        <h3>Manage Users</h3>
+        <p>Add/remove teachers and students</p>
+      </div>
+      <div class="card" style="cursor: pointer;" @click="switchSection('announcements')">
+        <h3>View Announcements</h3>
+        <p>Check latest announcements</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Recent Announcements -->
+  <div v-if="announcements.length > 0" style="margin-top: 30px;">
+    <h3>Recent Announcements</h3>
+    <div v-for="announcement in announcements.slice(0, 3)" :key="announcement._id" class="announcement">
+      <h4>{{ announcement.title }}</h4>
+      <p>{{ announcement.content }}</p>
+      <div class="date">By {{ announcement.author?.username || 'Admin' }} • {{ formatDate(announcement.createdAt) }}</div>
+    </div>
+  </div>
+</div>
+      
+      <!-- Real-time notifications -->
+      <div v-if="notifications.length > 0" class="notifications">
+        <h3>Recent Notifications</h3>
+        <div v-for="notification in notifications" :key="notification.id" class="notification">
+          <p>{{ notification.message }}</p>
+          <small>{{ formatTime(notification.timestamp) }}</small>
+        </div>
+      </div>
+    </div>
+
+        <!-- Admin Panel Section -->
+    <div v-if="currentSection === 'admin' && currentUser.role === 'admin'" class="section active">
+      <h2>Admin Panel</h2>
+      
+      <div class="admin-tabs">
+        <button @click="adminTab = 'classes'" :class="{ active: adminTab === 'classes' }">Manage Classes</button>
+        <button @click="adminTab = 'teachers'" :class="{ active: adminTab === 'teachers' }">Manage Teachers</button>
+        <button @click="adminTab = 'students'" :class="{ active: adminTab === 'students' }">Manage Students</button>
+      </div>
+      
+      <!-- Classes Management -->
+      <div v-if="adminTab === 'classes'">
+        <h3>Create New Class</h3>
+        <form @submit.prevent="createClass">
+          <div class="form-group">
+            <label>Class Name</label>
+            <input type="text" v-model="newClass.name" required>
+          </div>
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" v-model="newClass.subject" required>
+          </div>
+          <div class="form-group">
+            <label>Assign Teacher</label>
+            <select v-model="newClass.teacherId" required>
+              <option value="">Select Teacher</option>
+              <option v-for="teacher in teachers" :key="teacher._id" :value="teacher._id">
+                {{ teacher.username }}
+              </option>
+            </select>
+          </div>
+          <button type="submit" class="btn">Create Class</button>
+        </form>
+        
+        <h3>Existing Classes</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Class Name</th>
+              <th>Subject</th>
+              <th>Teacher</th>
+              <th>Students</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="classItem in classes" :key="classItem._id">
+              <td>{{ classItem.name }}</td>
+              <td>{{ classItem.subject }}</td>
+              <td>{{ classItem.teacher?.username || 'N/A' }}</td>
+              <td>{{ classItem.students?.length || 0 }}</td>
+              <td>
+                <button class="btn" @click="addStudentsToClass(classItem, [])">Manage Students</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Teacher Management Tab -->
+      <div v-if="adminTab === 'teachers'">
+        <h3>Create New Teacher</h3>
+        <form @submit.prevent="createUser('teacher')" style="margin-bottom: 30px;">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" v-model="newTeacher.username" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" v-model="newTeacher.email" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" v-model="newTeacher.password" required>
+          </div>
+          <button type="submit" class="btn">Create Teacher</button>
+        </form>
+        
+        <h3>Existing Teachers</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="teacher in teachers" :key="teacher._id">
+              <td>{{ teacher.username }}</td>
+              <td>{{ teacher.email }}</td>
+              <td>
+                <span :class="teacher.isActive ? 'status-active' : 'status-inactive'" class="status-badge">
+                  {{ teacher.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-danger" @click="deleteUser(teacher._id)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Student Management Tab -->
+      <div v-if="adminTab === 'students'">
+        <h3>Create New Student</h3>
+        <form @submit.prevent="createUser('student')" style="margin-bottom: 30px;">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" v-model="newStudent.username" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" v-model="newStudent.email" required>
+          </div>
+          <div class="form-group">
+            <label>Student ID</label>
+            <input type="text" v-model="newStudent.studentId" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" v-model="newStudent.password" required>
+          </div>
+          <button type="submit" class="btn">Create Student</button>
+        </form>
+        
+        <h3>Existing Students</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Student ID</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="student in students" :key="student._id">
+              <td>{{ student.username }}</td>
+              <td>{{ student.email }}</td>
+              <td>{{ student.studentId }}</td>
+              <td>
+                <button class="btn btn-danger" @click="deleteUser(student._id)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Assignments Section -->
+    <div v-if="currentSection === 'assignments'" class="section active">
+      <h2>Assignments</h2>
+      
+      <!-- Teacher Assignment Management -->
+      <div v-if="currentUser.role === 'teacher'">
+        <h3>Create New Assignment</h3>
+        <form @submit.prevent="createAssignment">
+          <div class="form-group">
+            <label>Assignment Title</label>
+            <input type="text" v-model="newAssignment.title" required>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea v-model="newAssignment.description" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" v-model="newAssignment.dueDate" required>
+          </div>
+          <div class="form-group">
+            <label>Class</label>
+            <select v-model="newAssignment.class" required>
+              <option value="math">Mathematics</option>
+              <option value="science">Science</option>
+              <option value="english">English</option>
+              <option value="history">History</option>
+            </select>
+          </div>
+          <button type="submit" class="btn">Create Assignment</button>
+        </form>
+        
+        <h3 style="margin-top: 30px;">Existing Assignments</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Class</th>
+              <th>Due Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="assignment in assignments" :key="assignment.id">
+              <td>{{ assignment.title }}</td>
+              <td>{{ assignment.class }}</td>
+              <td>{{ assignment.dueDate }}</td>
+              <td>
+                <button class="btn" @click="editAssignment(assignment)">Edit</button>
+                <button class="btn btn-danger" @click="deleteAssignment(assignment.id)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Student/Parent Assignment View -->
+<div v-else>
+  <!-- File Upload Section (initially hidden) -->
+  <div :class="{ 'file-upload-section': true, 'active': assignmentFile && selectedAssignmentForSubmission }">
+    <h3>Submit Assignment: {{ selectedAssignmentForSubmission.title }}</h3>
+    <div class="uploaded-file">
+      <span>{{ assignmentFileName }}</span>
+      <button @click="removeFile" class="btn-danger" style="padding: 5px 10px; margin-left: 10px;">Remove</button>
+    </div>
+    <button @click="submitAssignment" class="btn" style="margin-top: 10px;">
+      Submit Assignment
+    </button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Class</th>
+        <th>Due Date</th>
+        <th>Status</th>
+        <th v-if="currentUser.role === 'student'">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="assignment in assignments" :key="assignment._id">
+        <td>{{ assignment.title }}</td>
+        <td>{{ assignment.class?.name || assignment.class || 'N/A' }}</td>
+        <td>{{ formatDate(assignment.dueDate) }}</td>
+        <td :class="getAssignmentStatusClass(assignment)">
+          {{ getAssignmentStatus(assignment) }}
+        </td>
+        <td v-if="currentUser.role === 'student' && getAssignmentStatus(assignment) === 'Pending'">
+          <label class="file-upload-label">
+            <input 
+              type="file" 
+              @change="handleFileSelect($event, assignment)" 
+              accept=".pdf,.doc,.docx,.txt" 
+              style="display: none;"
+            >
+            <span class="btn" style="padding: 8px 15px; font-size: 14px;">Upload File</span>
+          </label>
+        </td>
+        <td v-else-if="currentUser.role === 'student' && getAssignmentStatus(assignment) === 'Submitted'">
+          <span class="status-completed">Submitted</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+    <!-- Grades Section -->
+    <div v-if="currentSection === 'grades'" class="section active">
+      <h2>Grades</h2>
+      
+      <!-- Teacher Grade Management -->
+      <div v-if="currentUser.role === 'teacher'">
+        <h3>Enter Grades</h3>
+        <form @submit.prevent="submitGrade">
+          <div class="form-group">
+            <label>Student</label>
+            <select v-model="newGrade.studentId" required>
+              <option value="">Select Student</option>
+              <option v-for="student in students" :key="student._id" :value="student._id">
+                {{ student.username }} ({{ student.studentId || 'No ID' }})
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Assignment</label>
+            <select v-model="newGrade.assignmentId" required>
+              <option value="">Select Assignment</option>
+              <option v-for="assignment in assignments" :key="assignment._id" :value="assignment._id">
+                {{ assignment.title }} - {{ assignment.class?.name || 'N/A' }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Score</label>
+            <input type="number" v-model="newGrade.score" min="0" max="100" required>
+          </div>
+          <button type="submit" class="btn">Submit Grade</button>
+        </form>
+        
+        <h3 style="margin-top: 30px;">Gradebook</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Assignment</th>
+              <th>Score</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="grade in grades" :key="grade.id">
+              <td>{{ grade.student }}</td>
+              <td>{{ grade.assignment }}</td>
+              <td>{{ grade.score }}%</td>
+              <td>{{ grade.date }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Student/Parent Grade View -->
+      <div v-else>
+        <table>
+          <thead>
+            <tr>
+              <th>Assignment</th>
+              <th>Class</th>
+              <th>Score</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="grade in studentGrades" :key="grade.id">
+              <td>{{ grade.assignment }}</td>
+              <td>Math</td>
+              <td>{{ grade.score }}%</td>
+              <td>{{ grade.date }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Announcements Section -->
+<div v-if="currentSection === 'announcements'" class="section active">
+  <h2>Announcements</h2>
+  
+  <!-- Announcement Creation Form (for Admin/Teacher) -->
+  <div v-if="currentUser.role === 'admin' || currentUser.role === 'teacher'" 
+       style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+    <h3>Create New Announcement</h3>
+    <form @submit.prevent="createAnnouncement">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" v-model="newAnnouncement.title" placeholder="Enter announcement title" required>
+      </div>
+      <div class="form-group">
+        <label>Content</label>
+        <textarea v-model="newAnnouncement.content" placeholder="Enter announcement content" rows="4" required></textarea>
+      </div>
+      <div class="form-group" v-if="currentUser.role === 'admin'">
+        <label>Target Audience</label>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+          <label style="display: flex; align-items: center; gap: 5px;">
+            <input type="checkbox" v-model="newAnnouncement.targetRoles" value="teacher"> Teachers
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px;">
+            <input type="checkbox" v-model="newAnnouncement.targetRoles" value="student"> Students
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px;">
+            <input type="checkbox" v-model="newAnnouncement.targetRoles" value="parent"> Parents
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px;">
+            <input type="checkbox" v-model="newAnnouncement.targetRoles" value="admin"> Admins
+          </label>
+        </div>
+      </div>
+      <button type="submit" class="btn">Create Announcement</button>
+    </form>
+  </div>
+  
+  <!-- Announcements List -->
+  <div v-if="announcements.length > 0">
+    <div v-for="announcement in announcements" :key="announcement._id" class="announcement">
+      <h4>{{ announcement.title }}</h4>
+      <p>{{ announcement.content }}</p>
+      <div class="date">
+        By {{ announcement.author?.username || 'Admin' }} • 
+        {{ formatDate(announcement.createdAt) }} •
+        For: {{ announcement.targetRoles?.join(', ') || 'All users' }}
+      </div>
+    </div>
+  </div>
+  <div v-else>
+    <p style="text-align: center; color: #666; padding: 40px;">No announcements yet.</p>
+  </div>
+</div>
+
+    <!-- Schedule Section -->
+<div v-if="currentSection === 'schedule'" class="section active">
+  <h2>Schedule</h2>
+  
+  <!-- Schedule Creation (Admin/Teacher) -->
+  <div v-if="currentUser.role === 'admin' || currentUser.role === 'teacher'" 
+       style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+    <h3>Create New Schedule</h3>
+    <form @submit.prevent="createSchedule">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" v-model="newSchedule.title" placeholder="Meeting title" required>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea v-model="newSchedule.description" placeholder="Meeting description" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" v-model="newSchedule.date" required>
+      </div>
+      <div class="form-group">
+        <label>Start Time</label>
+        <input type="time" v-model="newSchedule.startTime" required>
+      </div>
+      <div class="form-group">
+        <label>End Time</label>
+        <input type="time" v-model="newSchedule.endTime">
+      </div>
+      <div class="form-group" v-if="currentUser.role === 'admin'">
+        <label>Participants</label>
+        <select v-model="newSchedule.participants" multiple style="height: 100px;">
+          <option v-for="user in allUsers" :key="user._id" :value="user._id">
+            {{ user.username }} ({{ user.role }})
+          </option>
+        </select>
+        <small>Hold Ctrl to select multiple participants</small>
+      </div>
+      <button type="submit" class="btn">Create Schedule</button>
+    </form>
+  </div>
+  
+  <!-- Schedules List -->
+  <div v-if="schedules.length > 0">
+    <h3>Upcoming Schedules</h3>
+    <div class="dashboard-cards">
+      <div v-for="schedule in schedules" :key="schedule._id" class="card">
+        <h3>{{ schedule.title }}</h3>
+        <p v-if="schedule.description">{{ schedule.description }}</p>
+        <p><strong>Date:</strong> {{ formatDate(schedule.date) }}</p>
+        <p><strong>Time:</strong> {{ schedule.startTime }} 
+          <span v-if="schedule.endTime">- {{ schedule.endTime }}</span>
+        </p>
+        <p><strong>Created by:</strong> {{ schedule.createdBy?.username }}</p>
+        <div v-if="schedule.participants && schedule.participants.length > 0">
+          <small>Participants: {{ schedule.participants.map(p => p.username).join(', ') }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div v-else>
+    <p style="text-align: center; color: #666; padding: 40px;">No schedules yet.</p>
+  </div>
+</div>
+
+<script>
+// Ensure Vue is available (show helpful message if CDN failed)
+if (typeof Vue === 'undefined') {
+  // Immediately replace page content with a clear diagnostic message
+  try {
+    document.body.innerHTML = '<pre style="white-space:pre-wrap;color:red">Vue failed to load. Check your internet connection or the CDN (https://unpkg.com).\nOpen the browser console for more details.</pre>';
+  } catch (e) {
+    // If document isn't ready, set a fallback that will run on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function () {
+      document.body.innerHTML = '<pre style="white-space:pre-wrap;color:red">Vue failed to load. Check your internet connection or the CDN (https://unpkg.com).\nOpen the browser console for more details.</pre>';
+    });
+  }
+  throw new Error('Vue not loaded');
+}
+const { createApp, ref, computed, onMounted } = Vue;
+
+createApp({
+  setup() {
+    // Authentication state
+    const currentUser = ref(null);
+    const currentView = ref('login');
+    const authMode = ref('login');
+    const isLoading = ref(false);
+    const message = ref('');
+    const messageType = ref('');
+    const passwordResetSent = ref(false);
+
+    // Dashboard data
+    const dashboardStats = ref({});
+    const notifications = ref([]);
+    const unreadMessagesCount = ref(0);
+    
+    // Admin
+    const adminTab = ref('overview');
+    const newClass = ref({
+      name: '',
+      subject: '',
+      teacherId: '',
+      studentIds: []
+    });
+    
+    const classes = ref([]);
+    const teachers = ref([]);
+    const students = ref([]);
+    const allUsers = ref([]);
+
+    // Assignment Management
+    const newAssignment = ref({
+      title: '',
+      description: '',
+      dueDate: '',
+      classId: '',
+      selectedClass: null
+    });
+    
+    const newGrade = ref({
+      studentId: '',
+      assignmentId: '',
+      score: '',
+      feedback: ''
+    });
+
+    // Announcement Management
+    const newAnnouncement = ref({
+      title: '',
+      content: '',
+      targetRoles: ['teacher', 'student', 'parent', 'admin']
+    });
+
+    // Schedule Management 
+    const schedules = ref([]);
+    const newSchedule = ref({
+      title: '',
+      description: '',
+      date: '',
+      startTime: '',
+      endTime: '',
+      participants: []
+    });
+
+    // Admin user creation
+    const newTeacher = ref({
+      username: '',
+      email: '',
+      password: '',
+      role: 'teacher'
+    });
+
+    const newStudent = ref({
+      username: '',
+      email: '',
+      password: '',
+      role: 'student',
+      studentId: ''
+    });
+
+    // File upload
+    const assignmentFile = ref(null);
+    const assignmentFileName = ref('');
+    const selectedAssignmentForSubmission = ref(null);
+
+    // Form data
+    const loginData = ref({
+      username: '',
+      password: '',
+      role: ''
+    });
+
+    const signupData = ref({
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      role: '',
+      studentId: ''
+    });
+
+    const resetData = ref({
+      email: ''
+    });
+
+    // Dashboard state
+    const currentSection = ref('overview');
+
+    // Data from API
+    const assignments = ref([]);
+    const grades = ref([]);
+    const announcements = ref([]);
+    const childInfo = ref(null);
+    const childClasses = ref([]);
+    const childAssignments = ref([]);
+    const newStudentRegistrations = ref([]); 
+
+    // Computed properties
+    const messageClass = computed(() => {
+      return messageType.value === 'success' ? 'success-message' : 'error-message';
+    });
+
+    const recentGrade = computed(() => {
+      if (grades.value.length > 0) {
+        const latest = grades.value.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+        return `${latest.assignment}: ${latest.score}%`;
+      }
+      return 'No grades yet';
+    });
+
+    const studentGrades = computed(() => {
+      return grades.value;
+    });
+
+    const showAssignments = computed(() => {
+      return currentUser.value && ['teacher', 'student', 'parent'].includes(currentUser.value.role);
+    });
+
+    const showGrades = computed(() => {
+      return currentUser.value && ['teacher', 'student', 'parent'].includes(currentUser.value.role);
+    });
+
+    const showSchedule = computed(() => {
+      return currentUser.value && currentUser.value.role !== 'admin';
+    });
+
+    // Methods
+    const showMessage = (text, type = 'error') => {
+      message.value = text;
+      messageType.value = type;
+      setTimeout(() => {
+        message.value = '';
+        messageType.value = '';
+      }, 5000);
+    };
+
+    const validatePassword = (password) => {
+      const re = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+      return re.test(password);
+    };
+
+    const login = async () => {
+      if (!loginData.value.username || !loginData.value.password) {
+        showMessage('Please fill in all fields');
+        return;
+      }
+
+      isLoading.value = true;
+      
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(loginData.value)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Login failed');
+        }
+        
+        currentUser.value = data.user;
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        showMessage('Login successful!', 'success');
+        
+        // Load dashboard data
+        await loadDashboardData();
+        
+      } catch (error) {
+        showMessage(error.message);
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const signup = async () => {
+      if (signupData.value.password !== signupData.value.confirmPassword) {
+        showMessage('Passwords do not match');
+        return;
+      }
+
+      if (!validatePassword(signupData.value.password)) {
+        showMessage('Password must be at least 8 characters long and contain at least one letter, one number, and one special character (@$!%*#?&)');
+        return;
+      }
+
+      isLoading.value = true;
+      
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(signupData.value)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Registration failed');
+        }
+        
+        showMessage('Account created successfully! You can now login.', 'success');
+        switchToLogin();
+        
+      } catch (error) {
+        showMessage(error.message);
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const loadDashboardData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await fetch('/api/dashboard', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load dashboard data');
+        }
+        
+        // Update data with API response
+        announcements.value = data.announcements || [];
+        assignments.value = data.assignments || [];
+        grades.value = data.grades || [];
+        classes.value = data.classes || [];
+        dashboardStats.value = data.dashboardStats || {};
+        schedules.value = data.schedules || []; 
+        
+        if (data.allUsers) {
+          allUsers.value = data.allUsers;
+          teachers.value = data.teachers || [];
+          students.value = data.students || [];
+        }
+        
+        if (data.childInfo) {
+          childInfo.value = data.childInfo;
+          childClasses.value = data.childClasses || [];
+          childAssignments.value = data.childAssignments || [];
+        }
+        
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
+        showMessage('Failed to load dashboard data');
+      }
+    };
+
+    // ADD SCHEDULE METHODS HERE
+    const createSchedule = async () => {
+      if (!newSchedule.value.title || !newSchedule.value.date || !newSchedule.value.startTime) {
+        showMessage('Please fill in all required fields');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/schedules', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newSchedule.value)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create schedule');
+        }
+        
+        showMessage('Schedule created successfully!', 'success');
+        newSchedule.value = {
+          title: '',
+          description: '',
+          date: '',
+          startTime: '',
+          endTime: '',
+          participants: []
+        };
+        
+        // Reload schedules
+        await loadSchedules();
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const loadSchedules = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/schedules', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load schedules');
+        }
+        
+        schedules.value = data;
+        
+      } catch (error) {
+        console.error('Error loading schedules:', error);
+      }
+    };
+
+    // ADD ADMIN USER CREATION METHODS
+    const createUser = async (role) => {
+      const userData = role === 'teacher' ? newTeacher.value : newStudent.value;
+      
+      if (!userData.username || !userData.email || !userData.password) {
+        showMessage('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(userData)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create user');
+        }
+        
+        showMessage(`${role.charAt(0).toUpperCase() + role.slice(1)} created successfully!`, 'success');
+        
+        // Reset form
+        if (role === 'teacher') {
+          newTeacher.value = { username: '', email: '', password: '', role: 'teacher' };
+        } else {
+          newStudent.value = { username: '', email: '', password: '', role: 'student', studentId: '' };
+        }
+        
+        // Reload users
+        await loadDashboardData();
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const resetPassword = async () => {
+      if (!resetData.value.email) {
+        showMessage('Please enter your email address');
+        return;
+      }
+
+      isLoading.value = true;
+      
+      try {
+        const response = await fetch('/api/forgot-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email: resetData.value.email })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to send reset email');
+        }
+        
+        passwordResetSent.value = true;
+        showMessage('Password reset instructions have been sent to your email.', 'success');
+        
+      } catch (error) {
+        showMessage(error.message);
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const logout = () => {
+      currentUser.value = null;
+      currentView.value = 'login';
+      authMode.value = 'login';
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      loginData.value = { username: '', password: '', role: '' };
+      assignments.value = [];
+      grades.value = [];
+      announcements.value = [];
+      notifications.value = [];
+      currentSection.value = 'overview';
+      dashboardStats.value = {};
+      schedules.value = [];
+    };
+
+    const switchToLogin = () => {
+      currentView.value = 'login';
+      authMode.value = 'login';
+      message.value = '';
+      passwordResetSent.value = false;
+    };
+
+    const switchToSignup = () => {
+      currentView.value = 'signup';
+      authMode.value = 'signup';
+      message.value = '';
+    };
+
+    const switchToForgotPassword = () => {
+      currentView.value = 'forgot-password';
+      message.value = '';
+      passwordResetSent.value = false;
+    };
+
+    const switchSection = (section) => {
+      currentSection.value = section;
+      if (section === 'admin') {
+        adminTab.value = 'overview';
+      }
+    };
+
+    // Add this to your reactive state
+const showFileUploadSection = ref(false);
+
+// Update handleFileSelect method
+const handleFileSelect = (event, assignment) => {
+  const file = event.target.files[0];
+  if (file) {
+    assignmentFile.value = file;
+    assignmentFileName.value = file.name;
+    selectedAssignmentForSubmission.value = assignment;
+    showFileUploadSection.value = true; // Use reactive property
+  }
+};
+
+// Update removeFile method
+const removeFile = () => {
+  assignmentFile.value = null;
+  assignmentFileName.value = '';
+  selectedAssignmentForSubmission.value = null;
+  showFileUploadSection.value = false; // Use reactive property
+  
+  // Clear file input
+  const fileInputs = document.querySelectorAll('input[type="file"]');
+  fileInputs.forEach(input => input.value = '');
+};
+
+
+    // Announcement methods
+    const createAnnouncement = async () => {
+      if (!newAnnouncement.value.title || !newAnnouncement.value.content) {
+        showMessage('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/announcements', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: newAnnouncement.value.title,
+            content: newAnnouncement.value.content,
+            targetRoles: newAnnouncement.value.targetRoles
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create announcement');
+        }
+        
+        showMessage('Announcement created successfully!', 'success');
+        newAnnouncement.value = {
+          title: '',
+          content: '',
+          targetRoles: ['teacher', 'student', 'parent', 'admin']
+        };
+        
+        // Reload announcements
+        announcements.value.unshift(data.announcement);
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    // Update getAssignmentStatus method to check submissions
+    const getAssignmentStatus = (assignment) => {
+    const today = new Date();
+    const dueDate = new Date(assignment.dueDate);
+  
+  // Check if student has submitted this assignment
+  if (assignment.submissions && Array.isArray(assignment.submissions)) {
+    const hasSubmitted = assignment.submissions.some(sub => {
+      return sub.student && sub.student._id === currentUser.value._id;
+    });
+    
+    if (hasSubmitted) return 'Submitted';
+  }
+  
+  // If not submitted, check due date
+  if (dueDate < today) return 'Overdue';
+  return 'Pending';
+};
+
+    // Update submitAssignment function
+  const submitAssignment = async () => {
+    if (!assignmentFile.value || !selectedAssignmentForSubmission.value) {
+      showMessage('Please select a file to upload');
+      return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', assignmentFile.value);
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`/api/assignments/${selectedAssignmentForSubmission.value._id}/submit`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Submission failed');
+    }
+    
+    showMessage('Assignment submitted successfully!', 'success');
+    
+    // Reset file state
+    assignmentFile.value = null;
+    assignmentFileName.value = '';
+    selectedAssignmentForSubmission.value = null;
+    
+    // Hide the upload section
+    document.querySelector('.file-upload-section').style.display = 'none';
+    
+    // Reload assignments
+    await loadDashboardData();
+    
+  } catch (error) {
+    showMessage(error.message);
+  }
+};
+console.log('Submitting assignment:', {
+  assignmentId: selectedAssignmentForSubmission.value._id,
+  fileName: assignmentFileName.value
+});
+
+  const createAssignment = async () => {
+    if (!newAssignment.value.title || !newAssignment.value.description || 
+        !newAssignment.value.dueDate || !newAssignment.value.classId) {
+      showMessage('Please fill in all fields');
+      return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch('/api/assignments', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title: newAssignment.value.title,
+        description: newAssignment.value.description,
+        dueDate: newAssignment.value.dueDate,
+        classId: newAssignment.value.classId
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to create assignment');
+    }
+    
+    showMessage('Assignment created successfully!', 'success');
+    newAssignment.value = { 
+      title: '', 
+      description: '', 
+      dueDate: '', 
+      classId: '' 
+    };
+    
+    // Reload assignments
+    await loadDashboardData();
+    
+  } catch (error) {
+    showMessage(error.message);
+  }
+};
+
+console.log('Creating assignment:', {
+  title: newAssignment.value.title,
+  classId: newAssignment.value.classId,
+  dueDate: newAssignment.value.dueDate
+});
+
+    // Admin methods
+    const createClass = async () => {
+      if (!newClass.value.name || !newClass.value.subject || !newClass.value.teacherId) {
+        showMessage('Please fill in all required fields');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/classes', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newClass.value)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create class');
+        }
+        
+        showMessage('Class created successfully!', 'success');
+        newClass.value = { name: '', subject: '', teacherId: '', studentIds: [] };
+        
+        // Reload classes
+        classes.value.push(data.class);
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const addStudentsToClass = async (classItem, studentIds) => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/classes/${classItem._id}/students`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ studentIds })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to add students');
+        }
+        
+        showMessage('Students added successfully!', 'success');
+        return data.class;
+        
+      } catch (error) {
+        showMessage(error.message);
+        return null;
+      }
+    };
+
+      const editAssignment = async (assignment) => {
+      // Implementation for editing assignment
+      showMessage('Edit feature coming soon!', 'info');
+    };
+
+    const deleteAssignment = async (assignmentId) => {
+      if (!confirm('Are you sure you want to delete this assignment?')) {
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/assignments/${assignmentId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to delete assignment');
+        }
+        
+        showMessage('Assignment deleted successfully!', 'success');
+        
+        // Remove from list
+        assignments.value = assignments.value.filter(a => a._id !== assignmentId);
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const manageClassStudents = async (classItem) => {
+      // Implementation for managing class students
+      showMessage('Manage students feature coming soon!', 'info');
+    };
+
+    const assignStudentToClass = async (student) => {
+      // Implementation for assigning student to class
+      showMessage('Assign to class feature coming soon!', 'info');
+    };
+
+    const submitGrade = async () => {
+      if (!newGrade.value.studentId || !newGrade.value.assignmentId || !newGrade.value.score) {
+        showMessage('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/grades', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newGrade.value)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to submit grade');
+        }
+        
+        showMessage('Grade submitted successfully!', 'success');
+        newGrade.value = { studentId: '', assignmentId: '', score: '', feedback: '' };
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const deleteUser = async (userId) => {
+      if (!confirm('Are you sure you want to delete this user?')) {
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/users/${userId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to delete user');
+        }
+        
+        showMessage('User deleted successfully!', 'success');
+        
+        // Remove from lists
+        allUsers.value = allUsers.value.filter(u => u._id !== userId);
+        teachers.value = teachers.value.filter(t => t._id !== userId);
+        students.value = students.value.filter(s => s._id !== userId);
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const getAssignmentStatusClass = (assignment) => {
+      const status = getAssignmentStatus(assignment);
+      if (status === 'Submitted') return 'status-completed';
+      if (status === 'Overdue') return 'status-overdue';
+      return 'status-pending';
+    };
+
+    const formatDate = (dateString) => {
+      if (!dateString) return 'No date';
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    };
+
+    const formatTime = (timestamp) => {
+      if (!timestamp) return '';
+      return new Date(timestamp).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
+
+    // Check for existing session on page load - UPDATED TO SHOW LOGIN FIRST
+    onMounted(async () => {
+      // Always start with login page
+      currentView.value = 'login';
+      authMode.value = 'login';
+      
+      // Clear any existing session
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      currentUser.value = null;
+    });
+
+    // Return all properties and methods
+    return {
+      // State
+      currentUser,
+      currentView,
+      authMode,
+      isLoading,
+      message,
+      messageType,
+      passwordResetSent,
+      currentSection,
+      dashboardStats,
+      
+      // Data
+      notifications,
+      unreadMessagesCount,
+      adminTab,
+      newClass,
+      classes,
+      teachers,
+      students,
+      allUsers,
+      newAssignment,
+      newGrade,
+      assignmentFile,
+      assignmentFileName,
+      selectedAssignmentForSubmission,
+      childInfo,
+      childClasses,
+      childAssignments,
+      
+      // Schedule data 
+      schedules,
+      newSchedule,
+      
+      // Admin user creation
+      newTeacher,
+      newStudent,
+      
+      // Form data
+      loginData,
+      signupData,
+      resetData,
+      
+      // Data from API
+      assignments,
+      grades,
+      announcements,
+      
+      // Computed properties
+      messageClass,
+      recentGrade,
+      studentGrades,
+      showAssignments,
+      showGrades,
+      showSchedule,
+      newAnnouncement,
+      
+      // Methods
+      login,
+      signup,
+      resetPassword,
+      logout,
+      switchToLogin,
+      switchToSignup,
+      switchToForgotPassword,
+      switchSection,
+      handleFileSelect,
+      removeFile,
+      submitAssignment,
+      createAssignment,
+      createClass,
+      addStudentsToClass,
+      submitGrade,
+      deleteUser,
+      getAssignmentStatus,
+      getAssignmentStatusClass,
+      formatDate,
+      formatTime,
+      showMessage,
+      createAnnouncement,
+      createSchedule, 
+      loadSchedules, 
+      createUser,
+      editAssignment,
+      deleteAssignment, 
+      manageClassStudents, 
+      assignStudentToClass 
+    };
+  }
+}).mount('#app');
+
+// Global runtime error handlers to surface JS errors on the page
+window.addEventListener('error', function(e) {
+  const msg = e.error && e.error.stack ? e.error.stack : (e.message || String(e));
+  document.body.innerHTML = '<pre style="white-space:pre-wrap;color:red">JavaScript error:\n' + msg + '</pre>';
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+  const msg = e.reason && e.reason.stack ? e.reason.stack : (e.reason || String(e));
+  document.body.innerHTML = '<pre style="white-space:pre-wrap;color:red">Unhandled promise rejection:\n' + msg + '</pre>';
+});
+
+</script>
+</body>
+</html>
+</body>
+</html>
