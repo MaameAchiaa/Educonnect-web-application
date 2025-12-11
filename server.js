@@ -1,4 +1,3 @@
-
 const express = require('express');
 const path = require('path');
 const bcrypt = require('bcryptjs');
@@ -22,7 +21,6 @@ const userSchema = new mongoose.Schema({
   lastLogin: { type: Date }
 });
 
-
 const classSchema = new mongoose.Schema({
   name: { type: String, required: true },
   subject: { type: String, required: true },
@@ -37,7 +35,7 @@ const assignmentSchema = new mongoose.Schema({
   dueDate: { type: Date, required: true },
   class: { type: mongoose.Schema.Types.ObjectId, ref: 'Class', required: true },
   teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  maxScore: { type: Number, default: 100 }, // Add max score
+  maxScore: { type: Number, default: 100 },
   submissions: [{
     student: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     submittedAt: { type: Date, default: Date.now },
@@ -70,7 +68,7 @@ const scheduleSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   createdAt: { type: Date, default: Date.now }
-})
+});
 
 const User = mongoose.model('User', userSchema);
 const Class = mongoose.model('Class', classSchema);
@@ -97,7 +95,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }
 });
 
 // Create uploads directory if it doesn't exist
@@ -106,12 +104,15 @@ if (!fs.existsSync('uploads')) {
   fs.mkdirSync('uploads/assignments', { recursive: true });
 }
 
-// CORS Configuration
-app.use(cors({ origin: true, credentials: true }));
+// Middleware
+app.use(cors({ 
+  origin: true, 
+  credentials: true 
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// SESSION MIDDLEWARE
+// SESSION MIDDLEWARE - IMPORTANT: Configure this AFTER express.json()
 app.use(session({
   name: 'educonnect.sid',
   secret: process.env.SESSION_SECRET || 'default-session-secret',
@@ -124,22 +125,15 @@ app.use(session({
     autoRemove: 'native'
   }),
   cookie: {
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // Use true in production
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax'
   }
 }));
 
-// Test middleware to ensure session exists
-app.use((req, res, next) => {
-  console.log('Session ID:', req.sessionID);
-  console.log('Session exists:', !!req.session);
-  next();
-});
-
 // Static files
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(__dirname));
 app.use('/uploads', express.static('uploads'));
 
 // Authentication middleware
@@ -153,20 +147,26 @@ const requireAuth = (req, res, next) => {
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/educonnect', {
+    const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/educonnect';
+    console.log(`🔗 Connecting to MongoDB: ${mongoURI}`);
+    
+    await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
+    
     console.log('✅ MongoDB Connected to educonnect database');
   } catch (error) {
-    console.error('❌ MongoDB Connection Error:', error);
+    console.error('❌ MongoDB Connection Error:', error.message);
+    console.log('⚠️  Please ensure MongoDB is running:');
+    console.log('   For macOS: brew services start mongodb-community');
+    console.log('   For Windows: net start MongoDB');
+    console.log('   For Linux: sudo systemctl start mongod');
     process.exit(1);
   }
 };
-
-
-
-// API Routes
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -310,30 +310,9 @@ app.get('/api/session', (req, res) => {
   res.json({ authenticated: false });
 });
 
-// Helper function to calculate average grade for parent
-const calculateAverageGradeForParent = (assignments, studentId) => {
-  let totalGrade = 0;
-  let gradedCount = 0;
-  
-  assignments.forEach(assignment => {
-    const submission = assignment.submissions?.find(s => 
-      s.student && s.student.studentId === studentId
-    );
-    
-    if (submission && submission.grade !== null && submission.grade !== undefined) {
-      totalGrade += submission.grade;
-      gradedCount++;
-    }
-  });
-  
-  return gradedCount > 0 ? Math.round(totalGrade / gradedCount) + '%' : 'N/A';
-};
-
 // Get user dashboard data
 app.get('/api/dashboard', requireAuth, async (req, res) => {
   try {
-    console.log('Dashboard - Session userId:', req.session.userId);
-    
     const user = await User.findById(req.session.userId).select('-password');
     
     if (!user) {
@@ -472,41 +451,47 @@ app.get('/api/dashboard', requireAuth, async (req, res) => {
             data.assignments = await Assignment.find({ class: { $in: classIds } })
               .populate('class', 'name')
               .populate('teacher', 'username')
-              .populate('submissions.student', 'username studentId') // Important: populate studentId
+              .populate('submissions.student', 'username studentId')
               .sort({ dueDate: 1 });
           }
         }
         
+        // Calculate parent dashboard stats
+        const totalAssignments = data.assignments?.length || 0;
+        const pendingCount = data.assignments ? data.assignments.filter(a => {
+          const submission = a.submissions?.find(s => 
+            s.student && s.student.studentId === user.studentId
+          );
+          return !submission && new Date(a.dueDate) > new Date();
+        }).length : 0;
+        
+        const submittedCount = data.assignments ? data.assignments.filter(a => 
+          a.submissions?.some(s => 
+            s.student && s.student.studentId === user.studentId
+          )
+        ).length : 0;
+        
+        // Calculate average grade
+        let totalGrade = 0;
+        let gradedCount = 0;
+        if (data.assignments) {
+          data.assignments.forEach(assignment => {
+            const submission = assignment.submissions?.find(s => 
+              s.student && s.student.studentId === user.studentId
+            );
+            if (submission && submission.grade !== null && submission.grade !== undefined) {
+              totalGrade += submission.grade;
+              gradedCount++;
+            }
+          });
+        }
+        const averageGrade = gradedCount > 0 ? Math.round(totalGrade / gradedCount) + '%' : 'N/A';
+        
         data.dashboardStats = [
-          { 
-            label: 'Child\'s Assignments', 
-            value: data.assignments?.length || 0, 
-            description: 'Total assignments' 
-          },
-          { 
-            label: 'Pending', 
-            value: data.assignments ? data.assignments.filter(a => {
-              const submission = a.submissions?.find(s => 
-                s.student && s.student.studentId === user.studentId
-              );
-              return !submission && new Date(a.dueDate) > new Date();
-            }).length : 0, 
-            description: 'Assignments to complete' 
-          },
-          { 
-            label: 'Submitted', 
-            value: data.assignments ? data.assignments.filter(a => 
-              a.submissions?.some(s => 
-                s.student && s.student.studentId === user.studentId
-              )
-            ).length : 0, 
-            description: 'Assignments submitted' 
-          },
-          { 
-            label: 'Average Grade', 
-            value: data.assignments ? calculateAverageGradeForParent(data.assignments, user.studentId) : 'N/A', 
-            description: 'Child\'s performance' 
-          }
+          { label: 'Child\'s Assignments', value: totalAssignments, description: 'Total assignments' },
+          { label: 'Pending', value: pendingCount, description: 'Assignments to complete' },
+          { label: 'Submitted', value: submittedCount, description: 'Assignments submitted' },
+          { label: 'Average Grade', value: averageGrade, description: 'Child\'s performance' }
         ];
         break;
     }
@@ -517,7 +502,6 @@ app.get('/api/dashboard', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
-
 
 // ========== CLASS MANAGEMENT ROUTES ==========
 
@@ -608,9 +592,6 @@ app.post('/api/classes', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
-
-
-// ========== STUDENT ENROLLMENT ROUTES ==========
 
 // Enroll student in class (Admin or Teacher)
 app.post('/api/classes/:classId/enroll', requireAuth, async (req, res) => {
@@ -714,45 +695,6 @@ app.get('/api/classes/:classId/students', requireAuth, async (req, res) => {
   }
 });
 
-// Student self-enrollment (if allowed)
-app.post('/api/classes/:classId/self-enroll', requireAuth, async (req, res) => {
-  try {
-    const user = await User.findById(req.session.userId);
-    const { classId } = req.params;
-    
-    if (user.role !== 'student') {
-      return res.status(403).json({ error: 'Only students can self-enroll' });
-    }
-    
-    const classObj = await Class.findById(classId);
-    if (!classObj) {
-      return res.status(404).json({ error: 'Class not found' });
-    }
-    
-    // Check if already enrolled
-    if (classObj.students.includes(user._id)) {
-      return res.status(400).json({ error: 'You are already enrolled in this class' });
-    }
-    
-    // Enroll student
-    classObj.students.push(user._id);
-    await classObj.save();
-    
-    res.json({
-      success: true,
-      message: 'Successfully enrolled in class',
-      class: {
-        _id: classObj._id,
-        name: classObj.name,
-        subject: classObj.subject
-      }
-    });
-  } catch (error) {
-    console.error('Self-enrollment error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
 // ========== ASSIGNMENT MANAGEMENT ROUTES ==========
 
 // Get all assignments
@@ -817,8 +759,6 @@ app.post('/api/assignments', requireAuth, async (req, res) => {
   try {
     const user = await User.findById(req.session.userId);
     const { title, description, dueDate, classId } = req.body;
-    
-    console.log('Creating assignment:', { title, classId, dueDate, user: user.username });
     
     if (!title || !description || !dueDate || !classId) {
       return res.status(400).json({ error: 'All fields are required' });
@@ -942,8 +882,6 @@ app.delete('/api/assignments/:assignmentId', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
-
-// ========== GRADE MANAGEMENT ROUTES ==========
 
 // Grade a submission
 app.post('/api/assignments/:assignmentId/submissions/:studentId/grade', requireAuth, async (req, res) => {
@@ -1433,12 +1371,6 @@ app.post('/api/forgot-password', async (req, res) => {
   }
 });
 
-
-
-
-// Serve static files
-app.use(express.static(__dirname));
-
 // Handle all other routes
 app.get('*', (req, res) => {
   if (req.url.startsWith('/api/')) {
@@ -1474,9 +1406,7 @@ app.listen(PORT, async () => {
 async function initializeSampleData() {
   try {
     const userCount = await User.countDocuments();
-    // Existing sample data creation logic...
-
-console.log(`👥 Current user count: ${userCount}`);
+    console.log(`👥 Current user count: ${userCount}`);
     
     if (userCount === 0) {
       console.log('🌱 Creating sample data...');
@@ -1498,14 +1428,14 @@ console.log(`👥 Current user count: ${userCount}`);
         { 
           username: 'student1', 
           email: 'student1@educonnect.edu', 
-          password:'Password@123', 
+          password: 'Password@123', 
           role: 'student',
           studentId: 'STU2024001'
         },
         { 
           username: 'parent1', 
           email: 'parent1@educonnect.edu', 
-          password:'Password@123', 
+          password: 'Password@123', 
           role: 'parent',
           studentId: 'STU2024001'
         }

@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>EduConnect Management System</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+if (typeof Vue === 'undefined') {
+  document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Error: Vue.js failed to load. Please check your internet connection.</div>';
+}
+</script>
 <style>
   /* File Upload Styles */
   .file-upload-section {
@@ -605,6 +610,40 @@
       text-align: center;
     }
   }
+
+  /* NEW: Loading spinner */
+  .loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4CAF50;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* NEW: Password strength indicator */
+  .password-strength {
+    margin-top: 5px;
+    margin-bottom: 15px;
+  }
+
+  .strength-bar {
+    height: 4px;
+    border-radius: 2px;
+    margin-bottom: 5px;
+    transition: width 0.3s ease;
+  }
+
+  .password-strength span {
+    font-size: 12px;
+    font-weight: 600;
+  }
 </style>
 </head>
 <body>
@@ -651,7 +690,8 @@
           <option value="admin">Administrator</option>
         </select>
       </div>
-      <button type="submit" class="btn" :class="{ loading: isLoading }">
+      <div v-if="isLoading" class="loading-spinner"></div>
+      <button type="submit" class="btn" :class="{ loading: isLoading }" :disabled="isLoading">
         {{ isLoading ? 'Logging in...' : 'Login' }}
       </button>
     </form>
@@ -683,7 +723,12 @@
       </div>
       <div class="form-group">
         <label for="signup-password">Password:</label>
-        <input type="password" id="signup-password" v-model="signupData.password" placeholder="Create a password" required />
+        <input type="password" id="signup-password" v-model="signupData.password" placeholder="Create a password" required @input="updatePasswordStrength" />
+      </div>
+      <!-- NEW: Password strength indicator -->
+      <div v-if="signupData.password" class="password-strength">
+        <div class="strength-bar" :style="{ backgroundColor: passwordStrength.color, width: (passwordStrength.strength/4*100) + '%' }"></div>
+        <span>{{ passwordStrength.text }}</span>
       </div>
       <div class="form-group">
         <label for="signup-confirm-password">Confirm Password:</label>
@@ -703,7 +748,8 @@
         <label for="student-id">Student ID (for parent/student registration):</label>
         <input type="text" id="student-id" v-model="signupData.studentId" placeholder="Enter student ID" />
       </div>
-      <button type="submit" class="btn" :class="{ loading: isLoading }">
+      <div v-if="isLoading" class="loading-spinner"></div>
+      <button type="submit" class="btn" :class="{ loading: isLoading }" :disabled="isLoading">
         {{ isLoading ? 'Creating Account...' : 'Create Account' }}
       </button>
     </form>
@@ -724,7 +770,8 @@
         <label for="reset-email">Email Address:</label>
         <input type="email" id="reset-email" v-model="resetData.email" placeholder="Enter your email address" required />
       </div>
-      <button type="submit" class="btn" :class="{ loading: isLoading }">
+      <div v-if="isLoading" class="loading-spinner"></div>
+      <button type="submit" class="btn" :class="{ loading: isLoading }" :disabled="isLoading">
         {{ isLoading ? 'Sending...' : 'Send Reset Link' }}
       </button>
     </form>
@@ -925,7 +972,12 @@
           </div>
           <div class="form-group">
             <label>Password</label>
-            <input type="password" v-model="newTeacher.password" required>
+            <input type="password" v-model="newTeacher.password" required @input="updatePasswordStrength">
+          </div>
+          <!-- NEW: Password strength indicator for teacher creation -->
+          <div v-if="newTeacher.password" class="password-strength">
+            <div class="strength-bar" :style="{ backgroundColor: passwordStrengthTeacher.color, width: (passwordStrengthTeacher.strength/4*100) + '%' }"></div>
+            <span>{{ passwordStrengthTeacher.text }}</span>
           </div>
           <button type="submit" class="btn">Create Teacher</button>
         </form>
@@ -975,7 +1027,12 @@
           </div>
           <div class="form-group">
             <label>Password</label>
-            <input type="password" v-model="newStudent.password" required>
+            <input type="password" v-model="newStudent.password" required @input="updatePasswordStrength">
+          </div>
+          <!-- NEW: Password strength indicator for student creation -->
+          <div v-if="newStudent.password" class="password-strength">
+            <div class="strength-bar" :style="{ backgroundColor: passwordStrengthStudent.color, width: (passwordStrengthStudent.strength/4*100) + '%' }"></div>
+            <span>{{ passwordStrengthStudent.text }}</span>
           </div>
           <button type="submit" class="btn">Create Student</button>
         </form>
@@ -1714,12 +1771,7 @@
 </div>
 
 <script>
-if (typeof Vue === 'undefined') {
-  document.body.innerHTML = '<pre style="white-space:pre-wrap;color:red">Vue failed to load. Check your internet connection or the CDN (https://unpkg.com).</pre>';
-  throw new Error('Vue not loaded');
-}
-
-const { createApp, ref, computed, onMounted } = Vue;
+const { createApp, ref, computed, onMounted, watch } = Vue;
 
 createApp({
   setup() {
@@ -1732,7 +1784,7 @@ createApp({
     const messageType = ref('');
     const passwordResetSent = ref(false);
     const lastRefresh = ref(null);
-    const lastScheduleRefresh = ref(null); // NEW: Track schedule refresh time
+    const lastScheduleRefresh = ref(null);
     
     // Student enrollment
     const selectedStudentId = ref('');
@@ -1837,6 +1889,9 @@ createApp({
       studentId: ''
     });
 
+    // NEW: Auto-logout timer
+    let inactivityTimer = null;
+
     // Computed properties
     const messageClass = computed(() => {
       return messageType.value === 'success' ? 'success-message' : 'error-message';
@@ -1854,6 +1909,22 @@ createApp({
       return currentUser.value && currentUser.value.role !== 'admin';
     });
 
+    // NEW: Password strength indicators
+    const passwordStrength = computed(() => {
+      const password = signupData.value.password;
+      return calculatePasswordStrength(password);
+    });
+
+    const passwordStrengthTeacher = computed(() => {
+      const password = newTeacher.value.password;
+      return calculatePasswordStrength(password);
+    });
+
+    const passwordStrengthStudent = computed(() => {
+      const password = newStudent.value.password;
+      return calculatePasswordStrength(password);
+    });
+
     // Methods
     const showMessage = (text, type = 'error') => {
       message.value = text;
@@ -1867,6 +1938,43 @@ createApp({
     const validatePassword = (password) => {
       const re = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
       return re.test(password);
+    };
+
+    // NEW: Password strength calculator
+    const calculatePasswordStrength = (password) => {
+      if (!password) return { strength: 0, text: '', color: '#ccc' };
+      
+      let strength = 0;
+      if (password.length >= 8) strength++;
+      if (/[A-Z]/.test(password)) strength++;
+      if (/[0-9]/.test(password)) strength++;
+      if (/[@$!%*#?&]/.test(password)) strength++;
+      
+      const strengths = [
+        { text: 'Very Weak', color: '#f44336' },
+        { text: 'Weak', color: '#f44336' },
+        { text: 'Fair', color: '#ff9800' },
+        { text: 'Good', color: '#ffc107' },
+        { text: 'Strong', color: '#4CAF50' }
+      ];
+      
+      return strengths[strength] || { text: 'Very Weak', color: '#f44336', strength: 0 };
+    };
+
+    // NEW: Reset inactivity timer
+    const resetInactivityTimer = () => {
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+      
+      if (currentUser.value) {
+        inactivityTimer = setTimeout(() => {
+          if (currentUser.value) {
+            logout();
+            showMessage('You have been logged out due to inactivity', 'success');
+          }
+        }, 30 * 60 * 1000); // 30 minutes
+      }
     };
 
     const login = async () => {
@@ -1896,6 +2004,9 @@ createApp({
         currentUser.value = data.user;
         
         showMessage('Login successful!', 'success');
+        
+        // Start inactivity timer
+        resetInactivityTimer();
         
         // Load dashboard data
         await loadDashboardData();
@@ -2024,6 +2135,12 @@ createApp({
     };
 
     const logout = async () => {
+      // Clear inactivity timer
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+      }
+      
       try {
         const response = await fetch('/api/logout', {
           method: 'POST',
@@ -2113,6 +2230,21 @@ createApp({
     const handleFileSelect = (event) => {
       const file = event.target.files[0];
       if (file) {
+        // NEW: File validation
+        const allowedTypes = ['application/pdf', 'application/msword', 
+                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                             'text/plain'];
+        if (!allowedTypes.includes(file.type)) {
+          showMessage('Please upload only PDF, Word, or text files');
+          return;
+        }
+        
+        // NEW: File size validation (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          showMessage('File size must be less than 10MB');
+          return;
+        }
+        
         assignmentFile.value = file;
         assignmentFileName.value = file.name;
       }
@@ -2209,6 +2341,20 @@ createApp({
     const submitAssignment = async () => {
       if (!assignmentFile.value || !selectedAssignmentForSubmission.value) {
         showMessage('Please select a file to upload');
+        return;
+      }
+
+      // NEW: File validation in submit method as well
+      const allowedTypes = ['application/pdf', 'application/msword', 
+                           'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                           'text/plain'];
+      if (!allowedTypes.includes(assignmentFile.value.type)) {
+        showMessage('Please upload only PDF, Word, or text files');
+        return;
+      }
+      
+      if (assignmentFile.value.size > 10 * 1024 * 1024) {
+        showMessage('File size must be less than 10MB');
         return;
       }
 
@@ -2445,7 +2591,7 @@ createApp({
       return '#F44336';
     };
 
-    // Parent-specific helper methods - FIXED VERSION
+    // CRITICAL FIX: Parent-specific helper methods - UPDATED VERSION
     const getChildSubmission = (assignment) => {
       if (!currentUser.value || !currentUser.value.studentId || !assignment.submissions) return null;
       
@@ -2476,35 +2622,26 @@ createApp({
       return childSubmission || null;
     };
 
-    // FIXED: Improved parent assignment status detection
+    // CRITICAL FIX: Improved parent assignment status detection
     const getChildAssignmentStatusForAssignment = (assignment) => {
+      if (!assignment) return { status: 'Unknown', color: '#666' };
+      
       const submission = getChildSubmission(assignment);
       
       if (submission) {
-        // Child has submitted
         if (submission.grade !== null && submission.grade !== undefined) {
           return { status: 'Graded', color: '#4CAF50' };
         } else if (submission.fileUrl || submission.submittedAt) {
           return { status: 'Submitted', color: '#2196F3' };
-        } else {
-          // Has submission record but no file or date - treat as pending
-          const today = new Date();
-          const dueDate = new Date(assignment.dueDate);
-          if (dueDate < today) {
-            return { status: 'Overdue', color: '#f44336' };
-          } else {
-            return { status: 'Pending', color: '#ff9800' };
-          }
         }
+      }
+      
+      const today = new Date();
+      const dueDate = new Date(assignment.dueDate);
+      if (dueDate < today) {
+        return { status: 'Overdue', color: '#f44336' };
       } else {
-        // No submission found
-        const today = new Date();
-        const dueDate = new Date(assignment.dueDate);
-        if (dueDate < today) {
-          return { status: 'Overdue', color: '#f44336' };
-        } else {
-          return { status: 'Pending', color: '#ff9800' };
-        }
+        return { status: 'Pending', color: '#ff9800' };
       }
     };
 
@@ -2698,7 +2835,6 @@ createApp({
       }
     };
 
-    // FIXED: Improved schedule loading with timestamp
     const loadSchedules = async () => {
       try {
         const response = await fetch('/api/schedules', {
@@ -2719,9 +2855,6 @@ createApp({
         showMessage(error.message);
       }
     };
-
-
-    
 
     const deleteAssignment = async (assignmentId) => {
       if (!confirm('Are you sure you want to delete this assignment?')) {
@@ -2819,6 +2952,8 @@ createApp({
         const data = await response.json();
         
         if (data.authenticated) {
+          // Reset inactivity timer
+          resetInactivityTimer();
           await loadDashboardData();
         } else {
           currentView.value = 'login';
@@ -2929,8 +3064,19 @@ createApp({
       alert(`Total assignments: ${assignments.value.length}\nFound submissions: ${submittedCount}`);
     };
 
+    // NEW: Setup activity listeners for auto-logout
+    const setupActivityListeners = () => {
+      ['mousemove', 'keypress', 'click', 'scroll'].forEach(event => {
+        window.addEventListener(event, resetInactivityTimer);
+      });
+    };
+
     // Check for existing session on page load
     onMounted(async () => {
+      // Setup activity listeners
+      setupActivityListeners();
+      
+      // Check session
       await checkSession();
     });
 
@@ -2985,13 +3131,16 @@ createApp({
       selectedStudentId,
       classStudents,
       lastRefresh,
-      lastScheduleRefresh, // NEW
+      lastScheduleRefresh,
       
       // Computed properties
       messageClass,
       showAssignments,
       showGrades,
       showSchedule,
+      passwordStrength,
+      passwordStrengthTeacher,
+      passwordStrengthStudent,
       
       // Methods
       login,
@@ -3061,7 +3210,3 @@ window.addEventListener('unhandledrejection', function(e) {
 </script>
 </body>
 </html>
-
-
-
-
