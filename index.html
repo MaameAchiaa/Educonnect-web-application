@@ -1,0 +1,3067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EduConnect Management System</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<style>
+  /* File Upload Styles */
+  .file-upload-section {
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    display: block !important;
+  }
+
+  .file-upload-label {
+    cursor: pointer;
+    display: inline-block;
+  }
+
+  .file-upload-label:hover {
+    opacity: 0.9;
+  }
+
+  .uploaded-file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #e8f5e9;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin: 10px 0;
+    border-left: 4px solid #4CAF50;
+  }
+
+  .uploaded-file span {
+    color: #2e7d32;
+    font-weight: 500;
+  }
+
+  .file-upload-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    font-size: 14px;
+  }
+
+  .file-upload-btn:hover {
+    background-color: #45a049;
+  }
+
+  .submission-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .submission-submitted {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  .submission-pending {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  /* Reset some styles for consistency */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    line-height: 1.6;
+  }
+
+  /* Header Styles */
+  header {
+    background-color: #4CAF50;
+    padding: 20px;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .logo {
+    height: 50px;
+    width: auto;
+    border-radius: 5px;
+  }
+
+  .form-group{
+    text-align: center;
+  }
+
+  .form-group > input{
+    text-align: left;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logout-btn {
+    background-color: #fff;
+    color: #4CAF50;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  /* Container Styles */
+  #login-container, #dashboard, #signup-container, #forgot-password-container {
+    max-width: 900px;
+    margin: 30px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  /* Auth Navigation */
+  .auth-nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .auth-nav button {
+    background: none;
+    border: none;
+    color: #4CAF50;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+
+  .auth-nav button:hover {
+    background-color: #f0f2f5;
+  }
+
+  .auth-nav button.active {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  /* Form Styles */
+  #login-form, #signup-form, #forgot-password-form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%; 
+    max-width: 100%; 
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: #4CAF50;
+    outline: none;
+  }
+
+  .form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .btn {
+    width: 100%; 
+    max-width: 400px; 
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+  }
+
+  .btn:hover {
+    background-color: #45a049;
+  }
+
+  .btn-secondary {
+    color: green;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background-color: white;
+  }
+
+  .btn-danger {
+    background-color: #f44336;
+  }
+
+  .btn-danger:hover {
+    background-color: #d32f2f;
+  }
+
+  /* Navigation Styles */
+  nav {
+    display: flex;
+    justify-content: center;
+    background-color: #333;
+    margin-top: 20px;
+    border-radius: 4px;
+    flex-wrap: wrap;
+  }
+
+  nav a {
+    color: white;
+    padding: 14px 20px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+  }
+
+  nav a:hover {
+    background-color: #575757;
+  }
+
+  /* Role-based Sections */
+  .section {
+    display: none;
+    margin-top: 20px;
+  }
+
+  .section h2 {
+    margin-bottom: 15px;
+    color: #4CAF50;
+  }
+
+  /* Active section visible */
+  .active {
+    display: block;
+  }
+
+  /* Dashboard Cards */
+  .dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    transition: transform 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+  }
+
+  .card h3 {
+    color: #4CAF50;
+    margin-bottom: 10px;
+  }
+
+  /* Table Styles */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+
+  table th, table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+  }
+
+  table tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  /* Announcement Styles */
+  .announcement {
+    background-color: #f9f9f9;
+    border-left: 4px solid #4CAF50;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+  }
+
+  .announcement h4 {
+    margin-bottom: 5px;
+    color: #333;
+  }
+
+  .announcement p {
+    color: #666;
+  }
+
+  .announcement .date {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+  }
+
+  /* Status indicators */
+  .status-pending {
+    color: #ff9800;
+    font-weight: 600;
+  }
+
+  .status-completed {
+    color: #4CAF50;
+    font-weight: 600;
+  }
+
+  .status-overdue {
+    color: #f44336;
+    font-weight: 600;
+  }
+
+  /* Loading and Success States */
+  .loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .success-message {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+
+  .error-message {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+
+  /* Responsive adjustments */
+  @media(max-width: 768px) {
+    #login-container, #dashboard, #signup-container, #forgot-password-container {
+      margin: 20px;
+      padding: 20px;
+    }
+
+    nav {
+      flex-direction: column;
+    }
+
+    nav a {
+      padding: 10px;
+      text-align: center;
+    }
+
+    .dashboard-cards {
+      grid-template-columns: 1fr;
+    }
+
+    header {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+    }
+
+    .header-left {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .auth-nav {
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+
+  /* Center form elements */
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .form-group {
+    width: 100%;
+    max-width: 400px;
+    margin: 15px auto;
+    text-align: center;
+  }
+  
+  .form-group label {
+    display: block;
+    text-align: center;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+  }
+  
+  .btn {
+    width: 100%;
+    max-width: 400px;
+    margin: 20px auto;
+    display: block;
+  }
+  
+  /* File Upload Section Styles */
+  .file-upload-section {
+    background: #f8f9fa;
+    border: 2px dashed #4CAF50;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .uploaded-file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #e8f5e9;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin: 10px 0;
+    border-left: 4px solid #4CAF50;
+  }
+
+  .uploaded-file span {
+    color: #2e7d32;
+    font-weight: 500;
+  }
+
+  .file-upload-label {
+    cursor: pointer;
+    display: inline-block;
+  }
+
+  .file-upload-label input[type="file"] {
+    display: none;
+  }
+  
+  /* Admin panel improvements */
+  .admin-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .admin-tabs button {
+    padding: 10px 20px;
+    background: #f0f0f0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .admin-tabs button.active {
+    background: #4CAF50;
+    color: white;
+  }
+  
+  /* Data tables */
+  .data-table {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 5px;
+  }
+  
+  .status-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .status-active { background: #d4edda; color: #155724; }
+  .status-pending { background: #fff3cd; color: #856404; }
+  .status-inactive { background: #f8d7da; color: #721c24; }
+  
+  /* Assignment submission modal */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+  }
+  
+  .modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  /* Responsive improvements */
+  @media (max-width: 768px) {
+    .admin-tabs {
+      flex-direction: column;
+    }
+    
+    .action-buttons {
+      flex-direction: column;
+    }
+    
+    nav {
+      flex-wrap: wrap;
+    }
+    
+    nav a {
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-left">
+      <img class="logo" src="images/logo.jpeg" alt="EduConnect Logo">
+      <h1>EduConnect Management System</h1>
+    </div>
+    <div v-if="currentUser" class="user-info">
+      <span>{{ currentUser.username }} ({{ currentUser.role }})</span>
+      <button class="logout-btn" @click="logout">Logout</button>
+    </div>
+  </header>
+
+  <!-- Login Container -->
+  <div v-if="!currentUser && currentView === 'login'" id="login-container">
+    <div class="auth-nav">
+      <button :class="{ active: authMode === 'login' }" @click="authMode = 'login'">Login</button>
+      <button :class="{ active: authMode === 'signup' }" @click="switchToSignup">Sign Up</button>
+    </div>
+
+    <h2 style="text-align:center; margin-bottom:20px;">Login to Your Account</h2>
+    
+    <div v-if="message" :class="messageClass">{{ message }}</div>
+    
+    <form id="login-form" @submit.prevent="login">
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" v-model="loginData.username" placeholder="Enter username" required />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" v-model="loginData.password" placeholder="Enter password" required />
+      </div>
+      <div class="form-group">
+        <label for="role">Select Role:</label>
+        <select id="role" v-model="loginData.role" required>
+          <option value="">--Select Role--</option>
+          <option value="teacher">Teacher</option>
+          <option value="student">Student</option>
+          <option value="parent">Parent</option>
+          <option value="admin">Administrator</option>
+        </select>
+      </div>
+      <button type="submit" class="btn" :class="{ loading: isLoading }">
+        {{ isLoading ? 'Logging in...' : 'Login' }}
+      </button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 15px;">
+      <button class="btn-secondary" @click="switchToForgotPassword">Forgot Password?</button>
+    </div>
+  </div>
+
+  <!-- Signup Container -->
+  <div v-if="!currentUser && currentView === 'signup'" id="signup-container">
+    <div class="auth-nav">
+      <button :class="{ active: authMode === 'login' }" @click="switchToLogin">Login</button>
+      <button :class="{ active: authMode === 'signup' }" @click="authMode = 'signup'">Sign Up</button>
+    </div>
+
+    <h2 style="text-align:center; margin-bottom:20px;">Create New Account</h2>
+    
+    <div v-if="message" :class="messageClass">{{ message }}</div>
+    
+    <form id="signup-form" @submit.prevent="signup">
+      <div class="form-group">
+        <label for="signup-username">Username:</label>
+        <input type="text" id="signup-username" v-model="signupData.username" placeholder="Choose a username" required />
+      </div>
+      <div class="form-group">
+        <label for="signup-email">Email:</label>
+        <input type="email" id="signup-email" v-model="signupData.email" placeholder="Enter your email" required />
+      </div>
+      <div class="form-group">
+        <label for="signup-password">Password:</label>
+        <input type="password" id="signup-password" v-model="signupData.password" placeholder="Create a password" required />
+      </div>
+      <div class="form-group">
+        <label for="signup-confirm-password">Confirm Password:</label>
+        <input type="password" id="signup-confirm-password" v-model="signupData.confirmPassword" placeholder="Confirm your password" required />
+      </div>
+      <div class="form-group">
+        <label for="signup-role">Select Role:</label>
+        <select id="signup-role" v-model="signupData.role" required>
+          <option value="">--Select Role--</option>
+          <option value="teacher">Teacher</option>
+          <option value="student">Student</option>
+          <option value="parent">Parent</option>
+          <option value="admin">Administrator</option>
+        </select>
+      </div>
+      <div class="form-group" v-if="signupData.role === 'student' || signupData.role === 'parent'">
+        <label for="student-id">Student ID (for parent/student registration):</label>
+        <input type="text" id="student-id" v-model="signupData.studentId" placeholder="Enter student ID" />
+      </div>
+      <button type="submit" class="btn" :class="{ loading: isLoading }">
+        {{ isLoading ? 'Creating Account...' : 'Create Account' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Forgot Password Container -->
+  <div v-if="!currentUser && currentView === 'forgot-password'" id="forgot-password-container">
+    <div class="auth-nav">
+      <button :class="{ active: authMode === 'login' }" @click="switchToLogin">Back to Login</button>
+    </div>
+
+    <h2 style="text-align:center; margin-bottom:20px;">Reset Your Password</h2>
+    
+    <div v-if="message" :class="messageClass">{{ message }}</div>
+    
+    <form id="forgot-password-form" @submit.prevent="resetPassword" v-if="!passwordResetSent">
+      <div class="form-group">
+        <label for="reset-email">Email Address:</label>
+        <input type="email" id="reset-email" v-model="resetData.email" placeholder="Enter your email address" required />
+      </div>
+      <button type="submit" class="btn" :class="{ loading: isLoading }">
+        {{ isLoading ? 'Sending...' : 'Send Reset Link' }}
+      </button>
+    </form>
+    
+    <div v-else class="success-message">
+      <p>Password reset instructions have been sent to your email address.</p>
+      <button class="btn" @click="switchToLogin" style="margin-top: 10px;">Return to Login</button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div v-if="currentUser" id="dashboard">
+    <div id="welcome" style="margin-bottom:20px; text-align:center; font-size:18px; font-weight:600;">
+      Welcome, {{ currentUser.username }} ({{ currentUser.role }})
+    </div>
+    
+    <nav>
+      <a @click="switchSection('overview')" :class="{ active: currentSection === 'overview' }">Overview</a>
+      <a @click="switchSection('assignments')" :class="{ active: currentSection === 'assignments' }" v-if="showAssignments">Assignments</a>
+      <a @click="switchSection('grades')" :class="{ active: currentSection === 'grades' }" v-if="showGrades">Grades</a>
+      <a @click="switchSection('schedule')" :class="{ active: currentSection === 'schedule' }" v-if="showSchedule">Schedule</a>
+      <a @click="switchSection('announcements')" :class="{ active: currentSection === 'announcements' }">Announcements</a>
+      <a @click="switchSection('admin')" :class="{ active: currentSection === 'admin' }" v-if="currentUser.role === 'admin'">Admin Panel</a>
+    </nav>
+
+    <!-- Overview Section -->
+    <div v-if="currentSection === 'overview'" class="section active">
+      <h2>Dashboard Overview - {{ currentUser.role.toUpperCase() }}</h2>
+      
+      <div class="dashboard-cards">
+        <div v-for="stat in dashboardStats" :key="stat.label" class="card">
+          <h3>{{ stat.label }}</h3>
+          <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">{{ stat.value }}</p>
+          <p>{{ stat.description }}</p>
+        </div>
+      </div>
+      
+      <!-- Recent Announcements -->
+      <div v-if="announcements.length > 0" style="margin-top: 30px;">
+        <h3>Recent Announcements</h3>
+        <div v-for="announcement in announcements.slice(0, 3)" :key="announcement._id" class="announcement">
+          <h4>{{ announcement.title }}</h4>
+          <p>{{ announcement.content }}</p>
+          <div class="date">By {{ announcement.author?.username || 'Admin' }} • {{ formatDate(announcement.createdAt) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Panel Section -->
+    <div v-if="currentSection === 'admin' && currentUser.role === 'admin'" class="section active">
+      <h2>Admin Panel</h2>
+      
+      <div class="admin-tabs">
+        <button @click="adminTab = 'classes'" :class="{ active: adminTab === 'classes' }">Manage Classes</button>
+        <button @click="adminTab = 'teachers'" :class="{ active: adminTab === 'teachers' }">Manage Teachers</button>
+        <button @click="adminTab = 'students'" :class="{ active: adminTab === 'students' }">Manage Students</button>
+      </div>
+      
+      <!-- Classes Management -->
+      <div v-if="adminTab === 'classes'">
+        <h3>Create New Class</h3>
+        <form @submit.prevent="createClass">
+          <div class="form-group">
+            <label>Class Name</label>
+            <input type="text" v-model="newClass.name" required>
+          </div>
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" v-model="newClass.subject" required>
+          </div>
+          <div class="form-group">
+            <label>Assign Teacher</label>
+            <select v-model="newClass.teacherId" required>
+              <option value="">Select Teacher</option>
+              <option v-for="teacher in teachers" :key="teacher._id" :value="teacher._id">
+                {{ teacher.username }}
+              </option>
+            </select>
+          </div>
+          <button type="submit" class="btn">Create Class</button>
+        </form>
+        
+        <h3>Manage Class Enrollment</h3>
+        
+        <div v-for="classItem in classes" :key="classItem._id" style="margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <h4>{{ classItem.name }} - {{ classItem.subject }}</h4>
+          <p><strong>Teacher:</strong> {{ classItem.teacher?.username || 'N/A' }}</p>
+          
+          <!-- Enroll New Student -->
+          <div style="margin: 15px 0; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+            <h5>Enroll New Student</h5>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <select v-model="selectedStudentId" style="padding: 10px; flex: 1; min-width: 200px;">
+                <option value="">Select Student to Enroll</option>
+                <option v-for="student in students" :key="student._id" :value="student._id">
+                  {{ student.username }} ({{ student.studentId || 'No ID' }})
+                </option>
+              </select>
+              <button @click="enrollStudent(classItem)" class="btn" :disabled="!selectedStudentId">
+                Enroll Student
+              </button>
+            </div>
+          </div>
+          
+          <!-- Current Students -->
+          <div>
+            <h5>Enrolled Students ({{ classItem.students?.length || 0 }})</h5>
+            
+            <!-- Button to load students -->
+            <button @click="loadClassStudents(classItem._id)" class="btn" style="padding: 8px 15px; margin-bottom: 10px;">
+              Load Students
+            </button>
+            
+            <!-- Students list -->
+            <div v-if="classStudents[classItem._id] && classStudents[classItem._id].length > 0">
+              <table style="width: 100%; margin-top: 10px;">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Student ID</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="student in classStudents[classItem._id]" :key="student._id">
+                    <td>{{ student.username }}</td>
+                    <td>{{ student.studentId || 'N/A' }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>
+                      <button @click="removeEnrollment(classItem, student._id)" 
+                              class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;">
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- Fallback: Show basic student info if detailed list not loaded -->
+            <div v-else-if="classItem.students && classItem.students.length > 0">
+              <ul style="list-style: none; padding: 0;">
+                <li v-for="student in classItem.students" :key="student._id || student" 
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee;">
+                  <span>
+                    {{ typeof student === 'object' ? student.username : 'Student ID: ' + student }}
+                    <span v-if="typeof student === 'object' && student.studentId" style="color: #666; margin-left: 10px;">
+                      ({{ student.studentId }})
+                    </span>
+                  </span>
+                  <button @click="removeEnrollment(classItem, student._id || student)" 
+                          class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;">
+                    Remove
+                  </button>
+                </li>
+              </ul>
+            </div>
+            
+            <div v-else style="padding: 15px; text-align: center; color: #666; background: #f9f9f9; border-radius: 4px;">
+              No students enrolled yet.
+            </div>
+          </div>
+        </div>
+        
+        <h3>All Classes</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Class Name</th>
+              <th>Subject</th>
+              <th>Teacher</th>
+              <th>Students</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="classItem in classes" :key="classItem._id">
+              <td>{{ classItem.name }}</td>
+              <td>{{ classItem.subject }}</td>
+              <td>{{ classItem.teacher?.username || 'N/A' }}</td>
+              <td>{{ classItem.students?.length || 0 }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Teacher Management Tab -->
+      <div v-if="adminTab === 'teachers'">
+        <h3>Create New Teacher</h3>
+        <form @submit.prevent="createUser('teacher')" style="margin-bottom: 30px;">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" v-model="newTeacher.username" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" v-model="newTeacher.email" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" v-model="newTeacher.password" required>
+          </div>
+          <button type="submit" class="btn">Create Teacher</button>
+        </form>
+        
+        <h3>Existing Teachers</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="teacher in teachers" :key="teacher._id">
+              <td>{{ teacher.username }}</td>
+              <td>{{ teacher.email }}</td>
+              <td>
+                <span :class="teacher.isActive ? 'status-active' : 'status-inactive'" class="status-badge">
+                  {{ teacher.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-danger" @click="deleteUser(teacher._id)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Student Management Tab -->
+      <div v-if="adminTab === 'students'">
+        <h3>Create New Student</h3>
+        <form @submit.prevent="createUser('student')" style="margin-bottom: 30px;">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" v-model="newStudent.username" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" v-model="newStudent.email" required>
+          </div>
+          <div class="form-group">
+            <label>Student ID</label>
+            <input type="text" v-model="newStudent.studentId" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" v-model="newStudent.password" required>
+          </div>
+          <button type="submit" class="btn">Create Student</button>
+        </form>
+        
+        <h3>Existing Students</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Student ID</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="student in students" :key="student._id">
+              <td>{{ student.username }}</td>
+              <td>{{ student.email }}</td>
+              <td>{{ student.studentId }}</td>
+              <td>
+                <button class="btn btn-danger" @click="deleteUser(student._id)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Assignments Section -->
+    <div v-if="currentSection === 'assignments'" class="section active">
+      <h2>Assignments</h2>
+      
+      <!-- Teacher Assignment Management -->
+      <div v-if="currentUser.role === 'teacher'">
+        <h3>Create New Assignment</h3>
+        <form @submit.prevent="createAssignment">
+          <div class="form-group">
+            <label>Assignment Title</label>
+            <input type="text" v-model="newAssignment.title" required>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea v-model="newAssignment.description" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" v-model="newAssignment.dueDate" required>
+          </div>
+          <div class="form-group">
+            <label>Maximum Score</label>
+            <input type="number" v-model="newAssignment.maxScore" min="1" max="1000" value="100">
+          </div>
+          <div class="form-group">
+            <label>Class</label>
+            <select v-model="newAssignment.classId" required>
+              <option value="">Select Class</option>
+              <option v-for="classItem in classes" :key="classItem._id" :value="classItem._id">
+                {{ classItem.name }} - {{ classItem.subject }}
+              </option>
+            </select>
+          </div>
+          <button type="submit" class="btn">Create Assignment</button>
+        </form>
+        
+        <!-- Grading Interface -->
+        <div v-if="selectedAssignmentForGrading" style="margin-top: 30px; border: 2px solid #4CAF50; border-radius: 8px; padding: 20px;">
+          <h3>Grade Submissions: {{ selectedAssignmentForGrading.title }}</h3>
+          
+          <div style="margin-bottom: 20px;">
+            <button @click="gradingTab = 'submissions'" :class="{ active: gradingTab === 'submissions' }" 
+                    style="padding: 10px 20px; margin-right: 10px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer;">
+              Submissions ({{ assignmentSubmissions.length }})
+            </button>
+            <button @click="gradingTab = 'gradeForm'" :class="{ active: gradingTab === 'gradeForm' }"
+                    style="padding: 10px 20px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer;">
+              Grade Student
+            </button>
+          </div>
+          
+          <!-- Grade Form -->
+          <div v-if="gradingTab === 'gradeForm'" style="background: #f9f9f9; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
+            <h4>Grade Student</h4>
+            <div class="form-group">
+              <label>Select Student</label>
+              <select v-model="gradingForm.studentId" required style="width: 100%; padding: 10px;">
+                <option value="">Select Student to Grade</option>
+                <option v-for="submission in assignmentSubmissions" :key="submission.student._id" :value="submission.student._id">
+                  {{ submission.student.username }} (Submitted: {{ formatDate(submission.submittedAt) }})
+                </option>
+              </select>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+              <div class="form-group">
+                <label>Grade (%)</label>
+                <input type="number" v-model="gradingForm.grade" min="0" max="100" step="0.1" placeholder="e.g., 85.5">
+              </div>
+              <div class="form-group">
+                <label>Score / {{ selectedAssignmentForGrading.maxScore || 100 }}</label>
+                <input type="number" v-model="gradingForm.score" :max="selectedAssignmentForGrading.maxScore || 100" step="0.1" placeholder="e.g., 42.5">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Feedback</label>
+              <textarea v-model="gradingForm.feedback" rows="3" placeholder="Provide feedback to student..."></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Maximum Score (for this assignment)</label>
+              <input type="number" v-model="gradingForm.maxScore" min="1" max="1000">
+            </div>
+            
+            <button @click="submitGrade" class="btn" :disabled="!gradingForm.studentId">
+              Submit Grade
+            </button>
+            <button @click="selectedAssignmentForGrading = null" class="btn btn-danger" style="margin-left: 10px;">
+              Close
+            </button>
+          </div>
+          
+          <!-- Submissions List -->
+          <div v-if="gradingTab === 'submissions'">
+            <h4>Submitted Work ({{ assignmentSubmissions.length }})</h4>
+            <table style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Submitted</th>
+                  <th>File</th>
+                  <th>Grade</th>
+                  <th>Feedback</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="submission in assignmentSubmissions" :key="submission.student._id">
+                  <td>{{ submission.student.username }}</td>
+                  <td>{{ formatDate(submission.submittedAt) }}</td>
+                  <td>
+                    <a v-if="submission.fileUrl" :href="submission.fileUrl" target="_blank" class="btn" style="padding: 5px 10px; font-size: 12px;">
+                      Download
+                    </a>
+                    <span v-else style="color: #666;">No file</span>
+                  </td>
+                  <td>
+                    <span v-if="submission.grade !== null && submission.grade !== undefined">
+                      {{ submission.grade }}%
+                      <span v-if="submission.score !== null && submission.score !== undefined">
+                        ({{ submission.score }}/{{ selectedAssignmentForGrading.maxScore || 100 }})
+                      </span>
+                    </span>
+                    <span v-else style="color: #ff9800;">Not graded</span>
+                  </td>
+                  <td>
+                    <span v-if="submission.feedback" style="font-size: 12px;">{{ submission.feedback }}</span>
+                    <span v-else style="color: #666; font-size: 12px;">No feedback</span>
+                  </td>
+                  <td>
+                    <span :style="{ color: getGradeStatusColor(submission.status), fontWeight: 'bold' }">
+                      {{ submission.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <button @click="gradingForm.studentId = submission.student._id; gradingTab = 'gradeForm'" 
+                            class="btn" style="padding: 5px 10px; font-size: 12px;">
+                      {{ submission.grade !== null ? 'Update Grade' : 'Grade' }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <!-- Unsubmitted Students -->
+            <div v-if="unsubmittedStudents.length > 0" style="margin-top: 20px;">
+              <h4>Not Submitted Yet ({{ unsubmittedStudents.length }})</h4>
+              <ul>
+                <li v-for="student in unsubmittedStudents" :key="student._id" style="margin: 5px 0;">
+                  {{ student.username }} ({{ student.email }})
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <h3 style="margin-top: 30px;">Your Assignments</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Class</th>
+              <th>Due Date</th>
+              <th>Submissions</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="assignment in assignments" :key="assignment._id">
+              <td>{{ assignment.title }}</td>
+              <td>{{ assignment.class?.name || 'N/A' }}</td>
+              <td>{{ formatDate(assignment.dueDate) }}</td>
+              <td>
+                {{ assignment.submissions?.length || 0 }} submitted
+                <span v-if="assignment.submissions">
+                  ({{ assignment.submissions.filter(s => s.grade !== null).length }} graded)
+                </span>
+              </td>
+              <td>
+                <button class="btn" @click="loadAssignmentSubmissions(assignment)" style="margin-right: 5px;">
+                  Grade
+                </button>
+                <button class="btn btn-danger" @click="deleteAssignment(assignment._id)">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Student Assignment View -->
+      <div v-else-if="currentUser.role === 'student'">
+        <div v-if="selectedAssignmentForSubmission" class="file-upload-section">
+          <h3>Submit Assignment: {{ selectedAssignmentForSubmission.title }}</h3>
+          <p><strong>Due:</strong> {{ formatDate(selectedAssignmentForSubmission.dueDate) }}</p>
+          <p><strong>Description:</strong> {{ selectedAssignmentForSubmission.description }}</p>
+          
+          <div v-if="assignmentFileName" class="uploaded-file">
+            <span>{{ assignmentFileName }}</span>
+            <button @click="removeFile" class="btn-danger" style="padding: 5px 10px; margin-left: 10px;">Remove</button>
+          </div>
+          
+          <label class="file-upload-label" style="display: block; margin: 15px 0;">
+            <input type="file" @change="handleFileSelect" accept=".pdf,.doc,.docx,.txt" style="display: none;">
+            <span class="btn" style="padding: 10px 20px;">Choose File</span>
+          </label>
+          
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button @click="submitAssignment" class="btn" :disabled="!assignmentFile">
+              Submit Assignment
+            </button>
+            <button @click="cancelSubmission" class="btn btn-danger">
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <h3>Your Assignments</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Class</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="assignment in assignments" :key="assignment._id">
+              <td>{{ assignment.title }}</td>
+              <td>{{ assignment.class?.name || 'N/A' }}</td>
+              <td>{{ formatDate(assignment.dueDate) }}</td>
+              <td :class="getAssignmentStatusClass(assignment)">
+                {{ getAssignmentStatus(assignment) }}
+              </td>
+              <td>
+                <button v-if="getAssignmentStatus(assignment) === 'Pending' || getAssignmentStatus(assignment) === 'Overdue'" 
+                        class="btn" @click="startSubmission(assignment)">
+                  Submit
+                </button>
+                <span v-else-if="getAssignmentStatus(assignment) === 'Submitted'" class="status-completed">
+                  Submitted
+                </span>
+                <span v-else class="status-overdue">
+                  {{ getAssignmentStatus(assignment) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Parent Assignment View -->
+      <div v-else-if="currentUser.role === 'parent'">
+        <h3>Your Child's Assignments</h3>
+        
+        <!-- ADD REFRESH BUTTON INSIDE PARENT SECTION -->
+        <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+          <button @click="loadAssignments" class="btn" style="padding: 8px 15px;">
+            Refresh Assignments
+          </button>
+          <button @click="debugParentAssignments" class="btn" style="padding: 8px 15px; background: #ff9800;">
+            Debug View
+          </button>
+          <span v-if="lastRefresh" style="font-size: 12px; color: #666;">
+            Last refreshed: {{ formatTime(lastRefresh) }}
+          </span>
+        </div>
+        
+        <div v-if="currentUser.studentId">
+          <p style="margin-bottom: 20px;">
+            <strong>Connected Student ID:</strong> {{ currentUser.studentId }}
+          </p>
+          
+          <div v-if="assignments.length > 0">
+            <div class="dashboard-cards">
+              <!-- Assignment Summary Card -->
+              <div class="card">
+                <h3>Assignment Status</h3>
+                <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">
+                  {{ getChildAssignmentStatus().pending }} Pending
+                </p>
+                <p>{{ getChildAssignmentStatus().submitted }} Submitted</p>
+                <p>{{ getChildAssignmentStatus().overdue }} Overdue</p>
+              </div>
+              
+              <!-- Upcoming Deadlines Card -->
+              <div class="card">
+                <h3>Upcoming Deadlines</h3>
+                <div v-for="assignment in getUpcomingAssignments().slice(0, 3)" :key="assignment._id" style="margin: 10px 0;">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: bold;">{{ assignment.title }}</span>
+                    <span style="color: #666; font-size: 12px;">
+                      {{ formatDate(assignment.dueDate) }}
+                    </span>
+                  </div>
+                  <div style="font-size: 12px; color: #666;">
+                    {{ assignment.class?.name || 'N/A' }} • 
+                    <span :style="{ color: getChildAssignmentStatusForAssignment(assignment).color, fontWeight: 'bold' }">
+                      {{ getChildAssignmentStatusForAssignment(assignment).status }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <h3 style="margin-top: 30px;">All Assignments</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Class</th>
+                  <th>Teacher</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Grade</th>
+                  <th>Submitted</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="assignment in assignments" :key="assignment._id">
+                  <td>{{ assignment.title }}</td>
+                  <td>{{ assignment.class?.name || 'N/A' }}</td>
+                  <td>{{ assignment.teacher?.username || 'N/A' }}</td>
+                  <td>
+                    {{ formatDate(assignment.dueDate) }}
+                    <span v-if="isAssignmentDueSoon(assignment.dueDate)" style="color: #ff9800; font-weight: bold;">
+                      (Due Soon!)
+                    </span>
+                  </td>
+                  <!-- FIXED: Parent assignment status display -->
+                  <td :style="{ color: getChildAssignmentStatusForAssignment(assignment).color, fontWeight: 'bold' }">
+                    {{ getChildAssignmentStatusForAssignment(assignment).status }}
+                  </td>
+                  <td>
+                    <span v-if="getChildGradeForAssignment(assignment)">
+                      {{ getChildGradeForAssignment(assignment).grade }}%
+                      <span v-if="getChildGradeForAssignment(assignment).score" style="color: #666;">
+                        ({{ getChildGradeForAssignment(assignment).score }}/{{ assignment.maxScore || 100 }})
+                      </span>
+                    </span>
+                    <span v-else style="color: #666;">Not graded</span>
+                  </td>
+                  <td>
+                    <span v-if="getChildSubmissionDate(assignment)">
+                      {{ formatDate(getChildSubmissionDate(assignment)) }}
+                    </span>
+                    <span v-else>-</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else>
+            <p style="text-align: center; color: #666; padding: 40px;">
+              No assignments found for student ID: {{ currentUser.studentId }}
+            </p>
+          </div>
+        </div>
+        
+        <div v-else style="text-align: center; padding: 40px; color: #666;">
+          <p>No student ID connected to your parent account.</p>
+          <p>Please contact administrator to link your account to your child's student ID.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grades Section -->
+    <div v-if="currentSection === 'grades'" class="section active">
+      <h2>Grades</h2>
+      
+      <!-- Teacher Grade Summary -->
+      <div v-if="currentUser.role === 'teacher'">
+        <h3>Grade Summary</h3>
+        <button @click="loadGrades" class="btn" style="margin-bottom: 20px;">
+          Refresh Grades
+        </button>
+        
+        <div v-if="grades.length > 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Assignment</th>
+                <th>Class</th>
+                <th>Student</th>
+                <th>Submitted</th>
+                <th>Grade</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="grade in grades" :key="grade.assignmentId + '-' + grade.studentId">
+                <td>{{ grade.assignmentTitle }}</td>
+                <td>{{ grade.className }}</td>
+                <td>{{ grade.studentName }}</td>
+                <td>{{ formatDate(grade.submittedAt) }}</td>
+                <td>
+                  <span v-if="grade.grade !== null && grade.grade !== undefined">
+                    <strong>{{ grade.grade }}%</strong>
+                    <span v-if="grade.score !== null" style="color: #666; margin-left: 5px;">
+                      ({{ grade.score }}/{{ grade.maxScore }})
+                    </span>
+                  </span>
+                  <span v-else style="color: #ff9800;">Not graded</span>
+                </td>
+                <td>
+                  <span :style="{ color: getGradeStatusColor(grade.status), fontWeight: 'bold' }">
+                    {{ grade.status }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else>
+          <p style="text-align: center; color: #666; padding: 40px;">No grades recorded yet.</p>
+        </div>
+      </div>
+      
+      <!-- Student Grades View -->
+      <div v-else-if="currentUser.role === 'student'">
+        <button @click="loadGrades" class="btn" style="margin-bottom: 20px;">
+          Refresh My Grades
+        </button>
+        
+        <div v-if="grades.length > 0">
+          <div class="dashboard-cards">
+            <!-- Grade Summary Card -->
+            <div class="card">
+              <h3>Average Grade</h3>
+              <p style="font-size: 32px; font-weight: bold; color: #4CAF50;">
+                {{ calculateAverageGrade() }}%
+              </p>
+              <p>Based on {{ grades.filter(g => g.grade !== null).length }} graded assignments</p>
+            </div>
+            
+            <!-- Recent Grades Card -->
+            <div class="card">
+              <h3>Recent Grades</h3>
+              <div v-for="grade in grades.slice(0, 3)" :key="grade.assignmentId" style="margin: 10px 0;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span>{{ grade.assignmentTitle }}</span>
+                  <span v-if="grade.grade !== null" :style="{ color: getGradeColor(grade.grade), fontWeight: 'bold' }">
+                    {{ grade.grade }}% ({{ getGradeLetter(grade.grade) }})
+                  </span>
+                  <span v-else style="color: #ff9800;">Pending</span>
+                </div>
+                <div style="font-size: 12px; color: #666;">
+                  {{ grade.className }} • {{ formatDate(grade.gradedAt || grade.submittedAt) }}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <h3 style="margin-top: 30px;">All Grades</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Assignment</th>
+                <th>Class</th>
+                <th>Teacher</th>
+                <th>Due Date</th>
+                <th>Submitted</th>
+                <th>Grade</th>
+                <th>Score</th>
+                <th>Feedback</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="grade in grades" :key="grade.assignmentId">
+                <td>{{ grade.assignmentTitle }}</td>
+                <td>{{ grade.className }}</td>
+                <td>{{ grade.teacherName }}</td>
+                <td>{{ formatDate(grade.dueDate) }}</td>
+                <td>{{ formatDate(grade.submittedAt) }}</td>
+                <td>
+                  <span v-if="grade.grade !== null && grade.grade !== undefined">
+                    <strong :style="{ color: getGradeColor(grade.grade) }">
+                      {{ grade.grade }}% ({{ getGradeLetter(grade.grade) }})
+                    </strong>
+                  </span>
+                  <span v-else style="color: #ff9800;">Not graded</span>
+                </td>
+                <td>
+                  <span v-if="grade.score !== null">
+                    {{ grade.score }} / {{ grade.maxScore }}
+                  </span>
+                  <span v-else>-</span>
+                </td>
+                <td>
+                  <span v-if="grade.feedback" style="font-size: 12px;">{{ grade.feedback }}</span>
+                  <span v-else style="color: #666; font-size: 12px;">No feedback</span>
+                </td>
+                <td>
+                  <span :style="{ color: getGradeStatusColor(grade.status), fontWeight: 'bold' }">
+                    {{ grade.status }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else>
+          <p style="text-align: center; color: #666; padding: 40px;">No grades available yet.</p>
+        </div>
+      </div>
+      
+      <!-- Parent Grades View -->
+      <div v-else-if="currentUser.role === 'parent'">
+        <h3>Student Grades</h3>
+        <button @click="loadGrades" class="btn" style="margin-bottom: 20px;">
+          Refresh Grades
+        </button>
+        
+        <div v-if="grades.length > 0">
+          <div class="dashboard-cards">
+            <div class="card">
+              <h3>Student Performance</h3>
+              <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">
+                {{ calculateAverageGrade() }}% Average
+              </p>
+              <p>Based on {{ grades.filter(g => g.grade !== null).length }} graded assignments</p>
+            </div>
+          </div>
+          
+          <h3 style="margin-top: 30px;">All Grades</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Assignment</th>
+                <th>Class</th>
+                <th>Teacher</th>
+                <th>Due Date</th>
+                <th>Submitted</th>
+                <th>Grade</th>
+                <th>Score</th>
+                <th>Feedback</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="grade in grades" :key="grade.assignmentId">
+                <td>{{ grade.assignmentTitle }}</td>
+                <td>{{ grade.className }}</td>
+                <td>{{ grade.teacherName }}</td>
+                <td>{{ formatDate(grade.dueDate) }}</td>
+                <td>{{ formatDate(grade.submittedAt) }}</td>
+                <td>
+                  <span v-if="grade.grade !== null">
+                    <strong :style="{ color: getGradeColor(grade.grade) }">
+                      {{ grade.grade }}% ({{ getGradeLetter(grade.grade) }})
+                    </strong>
+                  </span>
+                  <span v-else style="color: #ff9800;">Not graded</span>
+                </td>
+                <td>
+                  <span v-if="grade.score !== null">
+                    {{ grade.score }} / {{ grade.maxScore }}
+                  </span>
+                  <span v-else>-</span>
+                </td>
+                <td>
+                  <span v-if="grade.feedback" style="font-size: 12px;">{{ grade.feedback }}</span>
+                  <span v-else style="color: #666; font-size: 12px;">No feedback</span>
+                </td>
+                <td>
+                  <span :style="{ color: getGradeStatusColor(grade.status), fontWeight: 'bold' }">
+                    {{ grade.status }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else>
+          <p style="text-align: center; color: #666; padding: 40px;">
+            No grades available for your connected student.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Announcements Section -->
+    <div v-if="currentSection === 'announcements'" class="section active">
+      <h2>Announcements</h2>
+      
+      <!-- Announcement Creation Form (for Admin/Teacher) -->
+      <div v-if="currentUser.role === 'admin' || currentUser.role === 'teacher'" 
+           style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <h3>Create New Announcement</h3>
+        <form @submit.prevent="createAnnouncement">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" v-model="newAnnouncement.title" placeholder="Enter announcement title" required>
+          </div>
+          <div class="form-group">
+            <label>Content</label>
+            <textarea v-model="newAnnouncement.content" placeholder="Enter announcement content" rows="4" required></textarea>
+          </div>
+          <div class="form-group" v-if="currentUser.role === 'admin'">
+            <label>Target Audience</label>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+              <label style="display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" v-model="newAnnouncement.targetRoles" value="teacher"> Teachers
+              </label>
+              <label style="display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" v-model="newAnnouncement.targetRoles" value="student"> Students
+              </label>
+              <label style="display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" v-model="newAnnouncement.targetRoles" value="parent"> Parents
+              </label>
+              <label style="display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" v-model="newAnnouncement.targetRoles" value="admin"> Admins
+              </label>
+            </div>
+          </div>
+          <button type="submit" class="btn">Create Announcement</button>
+        </form>
+      </div>
+      
+      <!-- Announcements List -->
+      <div v-if="announcements.length > 0">
+        <div v-for="announcement in announcements" :key="announcement._id" class="announcement">
+          <h4>{{ announcement.title }}</h4>
+          <p>{{ announcement.content }}</p>
+          <div class="date">
+            By {{ announcement.author?.username || 'Admin' }} • 
+            {{ formatDate(announcement.createdAt) }} •
+            <span v-if="announcement.targetRoles && announcement.targetRoles.length > 0">
+              For: {{ announcement.targetRoles.join(', ') }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <p style="text-align: center; color: #666; padding: 40px;">No announcements yet.</p>
+      </div>
+    </div>
+
+    <!-- Schedule Section -->
+    <div v-if="currentSection === 'schedule'" class="section active">
+      <h2>Schedule</h2>
+      
+      <!-- Schedule Creation (Admin/Teacher) -->
+      <div v-if="currentUser.role === 'admin' || currentUser.role === 'teacher'" 
+           style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <h3>Create New Schedule</h3>
+        <form @submit.prevent="createSchedule">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" v-model="newSchedule.title" placeholder="Meeting title" required>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea v-model="newSchedule.description" placeholder="Meeting description" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" v-model="newSchedule.date" required>
+          </div>
+          <div class="form-group">
+            <label>Start Time</label>
+            <input type="time" v-model="newSchedule.startTime" required>
+          </div>
+          <div class="form-group">
+            <label>End Time</label>
+            <input type="time" v-model="newSchedule.endTime">
+          </div>
+          <button type="submit" class="btn">Create Schedule</button>
+        </form>
+      </div>
+      
+      <!-- Schedules List -->
+      <!-- FIXED: Added refresh button for schedules -->
+      <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+        <button @click="loadSchedules" class="btn" style="padding: 8px 15px;">
+          Refresh Schedules
+        </button>
+        <span v-if="lastScheduleRefresh" style="font-size: 12px; color: #666;">
+          Last refreshed: {{ formatTime(lastScheduleRefresh) }}
+        </span>
+      </div>
+      
+      <div v-if="schedules.length > 0">
+        <h3>Upcoming Schedules</h3>
+        <div class="dashboard-cards">
+          <div v-for="schedule in schedules" :key="schedule._id" class="card">
+            <h3>{{ schedule.title }}</h3>
+            <p v-if="schedule.description">{{ schedule.description }}</p>
+            <p><strong>Date:</strong> {{ formatDate(schedule.date) }}</p>
+            <p><strong>Time:</strong> {{ schedule.startTime }} 
+              <span v-if="schedule.endTime">- {{ schedule.endTime }}</span>
+            </p>
+            <p><strong>Created by:</strong> {{ schedule.createdBy?.username }}</p>
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <p style="text-align: center; color: #666; padding: 40px;">No schedules yet.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+if (typeof Vue === 'undefined') {
+  document.body.innerHTML = '<pre style="white-space:pre-wrap;color:red">Vue failed to load. Check your internet connection or the CDN (https://unpkg.com).</pre>';
+  throw new Error('Vue not loaded');
+}
+
+const { createApp, ref, computed, onMounted } = Vue;
+
+createApp({
+  setup() {
+    // Authentication state
+    const currentUser = ref(null);
+    const currentView = ref('login');
+    const authMode = ref('login');
+    const isLoading = ref(false);
+    const message = ref('');
+    const messageType = ref('');
+    const passwordResetSent = ref(false);
+    const lastRefresh = ref(null);
+    const lastScheduleRefresh = ref(null); // NEW: Track schedule refresh time
+    
+    // Student enrollment
+    const selectedStudentId = ref('');
+    
+    // Grade Management
+    const selectedAssignmentForGrading = ref(null);
+    const assignmentSubmissions = ref([]);
+    const unsubmittedStudents = ref([]);
+    const gradingForm = ref({
+      studentId: '',
+      grade: '',
+      score: '',
+      feedback: '',
+      maxScore: 100
+    });
+    const grades = ref([]);
+    const gradingTab = ref('submissions');
+
+    // Class students (for viewing enrolled students)
+    const classStudents = ref({});
+
+    // Dashboard data
+    const dashboardStats = ref([]);
+    
+    // Admin
+    const adminTab = ref('teachers');
+    const newClass = ref({
+      name: '',
+      subject: '',
+      teacherId: ''
+    });
+    
+    const classes = ref([]);
+    const teachers = ref([]);
+    const students = ref([]);
+
+    // Assignment Management
+    const newAssignment = ref({
+      title: '',
+      description: '',
+      dueDate: '',
+      classId: '',
+      maxScore: 100
+    });
+
+    // File upload
+    const assignmentFile = ref(null);
+    const assignmentFileName = ref('');
+    const selectedAssignmentForSubmission = ref(null);
+
+    // Form data
+    const loginData = ref({
+      username: '',
+      password: '',
+      role: ''
+    });
+
+    const signupData = ref({
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      role: '',
+      studentId: ''
+    });
+
+    const resetData = ref({
+      email: ''
+    });
+
+    // Dashboard state
+    const currentSection = ref('overview');
+
+    // Data from API
+    const assignments = ref([]);
+    const announcements = ref([]);
+    const schedules = ref([]);
+    const newAnnouncement = ref({
+      title: '',
+      content: '',
+      targetRoles: []
+    });
+    const newSchedule = ref({
+      title: '',
+      description: '',
+      date: '',
+      startTime: '',
+      endTime: ''
+    });
+
+    // Admin user creation
+    const newTeacher = ref({
+      username: '',
+      email: '',
+      password: ''
+    });
+
+    const newStudent = ref({
+      username: '',
+      email: '',
+      password: '',
+      studentId: ''
+    });
+
+    // Computed properties
+    const messageClass = computed(() => {
+      return messageType.value === 'success' ? 'success-message' : 'error-message';
+    });
+
+    const showAssignments = computed(() => {
+      return currentUser.value && ['teacher', 'student', 'parent'].includes(currentUser.value.role);
+    });
+
+    const showGrades = computed(() => {
+      return currentUser.value && ['teacher', 'student', 'parent'].includes(currentUser.value.role);
+    });
+
+    const showSchedule = computed(() => {
+      return currentUser.value && currentUser.value.role !== 'admin';
+    });
+
+    // Methods
+    const showMessage = (text, type = 'error') => {
+      message.value = text;
+      messageType.value = type;
+      setTimeout(() => {
+        message.value = '';
+        messageType.value = '';
+      }, 5000);
+    };
+
+    const validatePassword = (password) => {
+      const re = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+      return re.test(password);
+    };
+
+    const login = async () => {
+      if (!loginData.value.username || !loginData.value.password) {
+        showMessage('Please fill in all fields');
+        return;
+      }
+
+      isLoading.value = true;
+      
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(loginData.value),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Login failed');
+        }
+        
+        currentUser.value = data.user;
+        
+        showMessage('Login successful!', 'success');
+        
+        // Load dashboard data
+        await loadDashboardData();
+        
+      } catch (error) {
+        showMessage(error.message);
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const signup = async () => {
+      if (signupData.value.password !== signupData.value.confirmPassword) {
+        showMessage('Passwords do not match');
+        return;
+      }
+
+      if (!validatePassword(signupData.value.password)) {
+        showMessage('Password must be at least 8 characters long and contain at least one letter, one number, and one special character (@$!%*#?&)');
+        return;
+      }
+
+      isLoading.value = true;
+      
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(signupData.value)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Registration failed');
+        }
+        
+        showMessage('Account created successfully! You can now login.', 'success');
+        switchToLogin();
+        
+      } catch (error) {
+        showMessage(error.message);
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const loadDashboardData = async () => {
+      try {
+        const response = await fetch('/api/dashboard', {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load dashboard data');
+        }
+        
+        // Update user from response
+        currentUser.value = data.user;
+        
+        // Update dashboard stats
+        dashboardStats.value = data.dashboardStats || [];
+        
+        // Update role-specific data
+        if (currentUser.value.role === 'teacher') {
+          classes.value = data.classes || [];
+          assignments.value = data.assignments || [];
+        } else if (currentUser.value.role === 'student') {
+          classes.value = data.classes || [];
+          assignments.value = data.assignments || [];
+        } else if (currentUser.value.role === 'parent') {
+          classes.value = data.classes || [];
+          assignments.value = data.assignments || [];
+        } else if (currentUser.value.role === 'admin') {
+          classes.value = data.classes || [];
+          teachers.value = data.teachers || [];
+          students.value = data.students || [];
+          assignments.value = data.assignments || [];
+        }
+        
+        // Common data
+        announcements.value = data.announcements || [];
+        schedules.value = data.schedules || [];
+        
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
+        showMessage('Failed to load dashboard data');
+      }
+    };
+
+    const resetPassword = async () => {
+      if (!resetData.value.email) {
+        showMessage('Please enter your email address');
+        return;
+      }
+
+      isLoading.value = true;
+      
+      try {
+        const response = await fetch('/api/forgot-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email: resetData.value.email })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to send reset email');
+        }
+        
+        passwordResetSent.value = true;
+        showMessage('Password reset instructions have been sent to your email.', 'success');
+        
+      } catch (error) {
+        showMessage(error.message);
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const logout = async () => {
+      try {
+        const response = await fetch('/api/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          currentUser.value = null;
+          currentView.value = 'login';
+          authMode.value = 'login';
+          loginData.value = { username: '', password: '', role: '' };
+          assignments.value = [];
+          announcements.value = [];
+          currentSection.value = 'overview';
+          dashboardStats.value = [];
+          schedules.value = [];
+          showMessage('Logged out successfully', 'success');
+        }
+      } catch (error) {
+        console.error('Logout error:', error);
+        currentUser.value = null;
+        currentView.value = 'login';
+      }
+    };
+
+    const switchToLogin = () => {
+      currentView.value = 'login';
+      authMode.value = 'login';
+      message.value = '';
+      passwordResetSent.value = false;
+    };
+
+    const switchToSignup = () => {
+      currentView.value = 'signup';
+      authMode.value = 'signup';
+      message.value = '';
+    };
+
+    const switchToForgotPassword = () => {
+      currentView.value = 'forgot-password';
+      message.value = '';
+      passwordResetSent.value = false;
+    };
+
+    const switchSection = async (section) => {
+      currentSection.value = section;
+      
+      if (section === 'admin') {
+        adminTab.value = 'teachers';
+        await loadAdminData();
+      }
+      if (section === 'assignments') {
+        await loadAssignments();
+      }
+      if (section === 'announcements') {
+        await loadAnnouncements();
+      }
+      if (section === 'schedule') {
+        await loadSchedules();
+      }
+      if (section === 'grades') {
+        await loadGrades();
+      }
+    };
+
+    const loadAdminData = async () => {
+      try {
+        const response = await fetch('/api/admin-data', {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load admin data');
+        }
+        
+        teachers.value = data.teachers || [];
+        students.value = data.students || [];
+        classes.value = data.classes || [];
+        
+      } catch (error) {
+        console.error('Error loading admin data:', error);
+      }
+    };
+
+    const handleFileSelect = (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        assignmentFile.value = file;
+        assignmentFileName.value = file.name;
+      }
+    };
+
+    const removeFile = () => {
+      assignmentFile.value = null;
+      assignmentFileName.value = '';
+    };
+
+    const startSubmission = (assignment) => {
+      selectedAssignmentForSubmission.value = assignment;
+      assignmentFile.value = null;
+      assignmentFileName.value = '';
+    };
+
+    const cancelSubmission = () => {
+      selectedAssignmentForSubmission.value = null;
+      assignmentFile.value = null;
+      assignmentFileName.value = '';
+    };
+
+    const createAnnouncement = async () => {
+      if (!newAnnouncement.value.title || !newAnnouncement.value.content) {
+        showMessage('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/announcements', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newAnnouncement.value),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create announcement');
+        }
+        
+        showMessage('Announcement created successfully!', 'success');
+        newAnnouncement.value = {
+          title: '',
+          content: '',
+          targetRoles: []
+        };
+        
+        await loadAnnouncements();
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const loadAnnouncements = async () => {
+      try {
+        const response = await fetch('/api/announcements', {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load announcements');
+        }
+        
+        announcements.value = data;
+        
+      } catch (error) {
+        console.error('Error loading announcements:', error);
+      }
+    };
+
+    const getAssignmentStatus = (assignment) => {
+      if (!assignment.submissions) return 'Pending';
+      
+      const userSubmission = assignment.submissions.find(
+        sub => sub.student && sub.student._id === currentUser.value._id
+      );
+      
+      if (userSubmission) return 'Submitted';
+      
+      const today = new Date();
+      const dueDate = new Date(assignment.dueDate);
+      if (dueDate < today) return 'Overdue';
+      
+      return 'Pending';
+    };
+
+    const submitAssignment = async () => {
+      if (!assignmentFile.value || !selectedAssignmentForSubmission.value) {
+        showMessage('Please select a file to upload');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', assignmentFile.value);
+
+      try {
+        const response = await fetch(`/api/assignments/${selectedAssignmentForSubmission.value._id}/submit`, {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Submission failed');
+        }
+        
+        showMessage('Assignment submitted successfully!', 'success');
+        
+        assignmentFile.value = null;
+        assignmentFileName.value = '';
+        selectedAssignmentForSubmission.value = null;
+        
+        await loadAssignments();
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const loadAssignments = async () => {
+      try {
+        let url = '/api/assignments';
+        
+        if (currentUser.value?.role === 'parent' && currentUser.value?.studentId) {
+          url = `/api/assignments?studentId=${currentUser.value.studentId}`;
+        }
+        
+        const response = await fetch(url, {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load assignments');
+        }
+        
+        assignments.value = data;
+        lastRefresh.value = new Date();
+        
+      } catch (error) {
+        console.error('Error loading assignments:', error);
+      }
+    };
+
+    const createAssignment = async () => {
+      if (!newAssignment.value.title || !newAssignment.value.description || 
+          !newAssignment.value.dueDate || !newAssignment.value.classId) {
+        showMessage('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/assignments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newAssignment.value),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create assignment');
+        }
+        
+        showMessage('Assignment created successfully!', 'success');
+        newAssignment.value = { 
+          title: '', 
+          description: '', 
+          dueDate: '', 
+          classId: '',
+          maxScore: 100
+        };
+        
+        await loadAssignments();
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const loadAssignmentSubmissions = async (assignment) => {
+      try {
+        selectedAssignmentForGrading.value = assignment;
+        gradingTab.value = 'submissions';
+        
+        const response = await fetch(`/api/assignments/${assignment._id}/submissions`, {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load submissions');
+        }
+        
+        assignmentSubmissions.value = data.assignment.submissions || [];
+        unsubmittedStudents.value = data.unsubmittedStudents || [];
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const submitGrade = async () => {
+      if (!gradingForm.value.studentId) {
+        showMessage('Please select a student');
+        return;
+      }
+      
+      if (!gradingForm.value.grade && !gradingForm.value.score) {
+        showMessage('Please enter either a grade percentage or score');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/assignments/${selectedAssignmentForGrading.value._id}/submissions/${gradingForm.value.studentId}/grade`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(gradingForm.value),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to submit grade');
+        }
+        
+        showMessage('Grade submitted successfully!', 'success');
+        
+        gradingForm.value = {
+          studentId: '',
+          grade: '',
+          score: '',
+          feedback: '',
+          maxScore: selectedAssignmentForGrading.value.maxScore || 100
+        };
+        
+        await loadAssignmentSubmissions(selectedAssignmentForGrading.value);
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const getAssignmentStatusTooltip = (assignment) => {
+      const submission = getChildSubmission(assignment);
+      let tooltip = `Due: ${formatDate(assignment.dueDate)}\n`;
+      
+      if (submission) {
+        tooltip += `Submitted: ${formatDate(submission.submittedAt)}\n`;
+        if (submission.fileUrl) tooltip += 'File uploaded\n';
+        if (submission.grade !== null) tooltip += `Grade: ${submission.grade}%\n`;
+      } else {
+        tooltip += 'Not submitted yet\n';
+      }
+      
+      return tooltip;
+    };
+
+    const loadGrades = async () => {
+      try {
+        const response = await fetch('/api/grades', {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load grades');
+        }
+        
+        grades.value = data.grades || [];
+        
+      } catch (error) {
+        console.error('Error loading grades:', error);
+        showMessage(error.message);
+      }
+    };
+
+    const calculateGradePercentage = (score, maxScore) => {
+      if (!score || !maxScore) return null;
+      return Math.round((score / maxScore) * 100);
+    };
+
+    const getGradeStatusColor = (status) => {
+      switch(status) {
+        case 'graded': return '#4CAF50';
+        case 'late': return '#ff9800';
+        case 'submitted': return '#2196F3';
+        default: return '#9e9e9e';
+      }
+    };
+
+    const getGradeLetter = (percentage) => {
+      if (percentage >= 90) return 'A';
+      if (percentage >= 80) return 'B';
+      if (percentage >= 70) return 'C';
+      if (percentage >= 60) return 'D';
+      return 'F';
+    };
+
+    const calculateAverageGrade = () => {
+      const graded = grades.value.filter(g => g.grade !== null && g.grade !== undefined);
+      if (graded.length === 0) return 0;
+      const sum = graded.reduce((total, grade) => total + grade.grade, 0);
+      return Math.round(sum / graded.length);
+    };
+
+    const getGradeColor = (percentage) => {
+      if (percentage >= 90) return '#4CAF50';
+      if (percentage >= 80) return '#8BC34A';
+      if (percentage >= 70) return '#FFC107';
+      if (percentage >= 60) return '#FF9800';
+      return '#F44336';
+    };
+
+    // Parent-specific helper methods - FIXED VERSION
+    const getChildSubmission = (assignment) => {
+      if (!currentUser.value || !currentUser.value.studentId || !assignment.submissions) return null;
+      
+      // Look for a submission where the student ID matches
+      const childSubmission = assignment.submissions.find(sub => {
+        if (sub.student) {
+          if (typeof sub.student === 'object') {
+            // Check if student object has studentId property
+            return sub.student.studentId === currentUser.value.studentId;
+          } else if (typeof sub.student === 'string') {
+            // If student is just an ID string, we need to check differently
+            // This would require additional API call to get student details
+            return false; // Can't check without student details
+          }
+        }
+        return false;
+      });
+      
+      // If no submission found by student object, check by student ID in submission data
+      if (!childSubmission) {
+        // Some submissions might store studentId directly
+        const directMatch = assignment.submissions.find(sub => 
+          sub.studentId === currentUser.value.studentId
+        );
+        return directMatch || null;
+      }
+      
+      return childSubmission || null;
+    };
+
+    // FIXED: Improved parent assignment status detection
+    const getChildAssignmentStatusForAssignment = (assignment) => {
+      const submission = getChildSubmission(assignment);
+      
+      if (submission) {
+        // Child has submitted
+        if (submission.grade !== null && submission.grade !== undefined) {
+          return { status: 'Graded', color: '#4CAF50' };
+        } else if (submission.fileUrl || submission.submittedAt) {
+          return { status: 'Submitted', color: '#2196F3' };
+        } else {
+          // Has submission record but no file or date - treat as pending
+          const today = new Date();
+          const dueDate = new Date(assignment.dueDate);
+          if (dueDate < today) {
+            return { status: 'Overdue', color: '#f44336' };
+          } else {
+            return { status: 'Pending', color: '#ff9800' };
+          }
+        }
+      } else {
+        // No submission found
+        const today = new Date();
+        const dueDate = new Date(assignment.dueDate);
+        if (dueDate < today) {
+          return { status: 'Overdue', color: '#f44336' };
+        } else {
+          return { status: 'Pending', color: '#ff9800' };
+        }
+      }
+    };
+
+    const getChildGradeForAssignment = (assignment) => {
+      const submission = getChildSubmission(assignment);
+      if (!submission) return null;
+      
+      return {
+        grade: submission.grade,
+        score: submission.score,
+        feedback: submission.feedback
+      };
+    };
+
+    const getChildSubmissionDate = (assignment) => {
+      const submission = getChildSubmission(assignment);
+      return submission ? submission.submittedAt : null;
+    };
+
+    const getChildAssignmentStatus = () => {
+      const status = {
+        pending: 0,
+        submitted: 0,
+        overdue: 0,
+        graded: 0
+      };
+      
+      assignments.value.forEach(assignment => {
+        const submission = getChildSubmission(assignment);
+        
+        if (submission) {
+          if (submission.grade !== null && submission.grade !== undefined) {
+            status.graded++;
+          } else if (submission.fileUrl || submission.submittedAt) {
+            status.submitted++;
+          } else {
+            status.pending++;
+          }
+        } else {
+          const today = new Date();
+          const dueDate = new Date(assignment.dueDate);
+          if (dueDate < today) {
+            status.overdue++;
+          } else {
+            status.pending++;
+          }
+        }
+      });
+      
+      return status;
+    };
+
+    const getUpcomingAssignments = () => {
+      const today = new Date();
+      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+      
+      return assignments.value.filter(assignment => {
+        const dueDate = new Date(assignment.dueDate);
+        const submission = getChildSubmission(assignment);
+        
+        return dueDate >= today && dueDate <= nextWeek && !submission;
+      }).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    };
+
+    const isAssignmentDueSoon = (dueDateString) => {
+      const today = new Date();
+      const dueDate = new Date(dueDateString);
+      const timeDiff = dueDate.getTime() - today.getTime();
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      
+      return daysDiff <= 3 && daysDiff > 0;
+    };
+
+    const createClass = async () => {
+      if (!newClass.value.name || !newClass.value.subject || !newClass.value.teacherId) {
+        showMessage('Please fill in all required fields');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/classes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newClass.value),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create class');
+        }
+        
+        showMessage('Class created successfully!', 'success');
+        newClass.value = { name: '', subject: '', teacherId: '' };
+        
+        classes.value.push(data.class);
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const createUser = async (role) => {
+      const userData = role === 'teacher' ? newTeacher.value : newStudent.value;
+      
+      if (!userData.username || !userData.email || !userData.password) {
+        showMessage('Please fill in all fields');
+        return;
+      }
+
+      if (role === 'student' && !userData.studentId) {
+        showMessage('Student ID is required for students');
+        return;
+      }
+
+      const userToCreate = {
+        ...userData,
+        role: role
+      };
+
+      try {
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(userToCreate),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create user');
+        }
+        
+        showMessage(`${role.charAt(0).toUpperCase() + role.slice(1)} created successfully!`, 'success');
+        
+        if (role === 'teacher') {
+          newTeacher.value = { username: '', email: '', password: '' };
+          teachers.value.push(data.user);
+        } else {
+          newStudent.value = { username: '', email: '', password: '', studentId: '' };
+          students.value.push(data.user);
+        }
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const createSchedule = async () => {
+      if (!newSchedule.value.title || !newSchedule.value.date || !newSchedule.value.startTime) {
+        showMessage('Please fill in all required fields');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/schedules', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newSchedule.value),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create schedule');
+        }
+        
+        showMessage('Schedule created successfully!', 'success');
+        newSchedule.value = {
+          title: '',
+          description: '',
+          date: '',
+          startTime: '',
+          endTime: ''
+        };
+        
+        // FIXED: Refresh schedules after creating new one
+        await loadSchedules();
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    // FIXED: Improved schedule loading with timestamp
+    const loadSchedules = async () => {
+      try {
+        const response = await fetch('/api/schedules', {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load schedules');
+        }
+        
+        schedules.value = data;
+        lastScheduleRefresh.value = new Date();
+        
+      } catch (error) {
+        console.error('Error loading schedules:', error);
+        showMessage(error.message);
+      }
+    };
+
+
+    
+
+    const deleteAssignment = async (assignmentId) => {
+      if (!confirm('Are you sure you want to delete this assignment?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/assignments/${assignmentId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to delete assignment');
+        }
+        
+        showMessage('Assignment deleted successfully!', 'success');
+        
+        assignments.value = assignments.value.filter(a => a._id !== assignmentId);
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const deleteUser = async (userId) => {
+      if (!confirm('Are you sure you want to delete this user?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/users/${userId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to delete user');
+        }
+        
+        showMessage('User deleted successfully!', 'success');
+        
+        teachers.value = teachers.value.filter(t => t._id !== userId);
+        students.value = students.value.filter(s => s._id !== userId);
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const getAssignmentStatusClass = (assignment) => {
+      const status = getAssignmentStatus(assignment);
+      if (status === 'Submitted') return 'status-completed';
+      if (status === 'Overdue') return 'status-overdue';
+      return 'status-pending';
+    };
+
+    const formatDate = (dateString) => {
+      if (!dateString) return 'No date';
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'Invalid date';
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      } catch {
+        return 'Invalid date';
+      }
+    };
+
+    const formatTime = (date) => {
+      if (!date) return 'Never';
+      try {
+        return new Date(date).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch {
+        return 'Invalid time';
+      }
+    };
+
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/session', {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.authenticated) {
+          await loadDashboardData();
+        } else {
+          currentView.value = 'login';
+          authMode.value = 'login';
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+        currentView.value = 'login';
+      }
+    };
+
+    const enrollStudent = async (classItem) => {
+      if (!selectedStudentId.value) {
+        showMessage('Please select a student');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/classes/${classItem._id}/enroll`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ studentId: selectedStudentId.value }),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to enroll student');
+        }
+        
+        showMessage('Student enrolled successfully!', 'success');
+        selectedStudentId.value = '';
+        
+        await loadAdminData();
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const removeEnrollment = async (classItem, studentId) => {
+      if (!confirm('Remove student from class?')) return;
+      
+      try {
+        const response = await fetch(`/api/classes/${classItem._id}/enroll/${studentId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to remove student');
+        }
+        
+        showMessage('Student removed from class!', 'success');
+        
+        await loadAdminData();
+        
+      } catch (error) {
+        showMessage(error.message);
+      }
+    };
+
+    const loadClassStudents = async (classId) => {
+      try {
+        const response = await fetch(`/api/classes/${classId}/students`, {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          classStudents.value[classId] = data.students || [];
+        }
+      } catch (error) {
+        console.error('Error loading class students:', error);
+      }
+    };
+
+    const debugParentAssignments = () => {
+      console.log('=== DEBUG PARENT ASSIGNMENTS ===');
+      console.log('Current User:', currentUser.value);
+      console.log('Student ID:', currentUser.value?.studentId);
+      console.log('Assignments loaded:', assignments.value.length);
+      console.log('Assignments:', assignments.value);
+      
+      assignments.value.forEach((assignment, index) => {
+        const submission = getChildSubmission(assignment);
+        console.log(`Assignment ${index}: ${assignment.title}`);
+        console.log('  - Due Date:', assignment.dueDate);
+        console.log('  - Submissions:', assignment.submissions);
+        console.log('  - Found Submission:', submission);
+        console.log('  - Submission details:', submission ? {
+          hasFile: !!submission.fileUrl,
+          submittedAt: submission.submittedAt,
+          grade: submission.grade,
+          score: submission.score
+        } : 'No submission');
+        console.log('  - Calculated Status:', getChildAssignmentStatusForAssignment(assignment));
+      });
+      
+      // Show alert with summary
+      const submittedCount = assignments.value.filter(a => getChildSubmission(a)).length;
+      alert(`Total assignments: ${assignments.value.length}\nFound submissions: ${submittedCount}`);
+    };
+
+    // Check for existing session on page load
+    onMounted(async () => {
+      await checkSession();
+    });
+
+    return {
+      // State
+      currentUser,
+      currentView,
+      authMode,
+      isLoading,
+      message,
+      messageType,
+      passwordResetSent,
+      currentSection,
+      dashboardStats,
+      
+      // Grade Management
+      selectedAssignmentForGrading,
+      assignmentSubmissions,
+      unsubmittedStudents,
+      gradingForm,
+      grades,
+      gradingTab,
+      
+      // Data
+      adminTab,
+      newClass,
+      classes,
+      teachers,
+      students,
+      newAssignment,
+      assignmentFile,
+      assignmentFileName,
+      selectedAssignmentForSubmission,
+      
+      // Form data
+      loginData,
+      signupData,
+      resetData,
+      
+      // Data from API
+      assignments,
+      announcements,
+      schedules,
+      newAnnouncement,
+      newSchedule,
+      
+      // Admin user creation
+      newTeacher,
+      newStudent,
+      
+      // Enrollment
+      selectedStudentId,
+      classStudents,
+      lastRefresh,
+      lastScheduleRefresh, // NEW
+      
+      // Computed properties
+      messageClass,
+      showAssignments,
+      showGrades,
+      showSchedule,
+      
+      // Methods
+      login,
+      signup,
+      resetPassword,
+      logout,
+      switchToLogin,
+      switchToSignup,
+      switchToForgotPassword,
+      switchSection,
+      handleFileSelect,
+      removeFile,
+      startSubmission,
+      cancelSubmission,
+      submitAssignment,
+      createAssignment,
+      createClass,
+      createUser,
+      createAnnouncement,
+      createSchedule,
+      deleteAssignment,
+      deleteUser,
+      getAssignmentStatus,
+      getAssignmentStatusClass,
+      formatDate,
+      formatTime,
+      showMessage,
+      debugParentAssignments,
+      
+      // Enrollment methods
+      enrollStudent,
+      removeEnrollment,
+      loadClassStudents,
+
+      // Grade Methods
+      loadAssignmentSubmissions,
+      submitGrade,
+      loadGrades,
+      calculateGradePercentage,
+      getGradeStatusColor,
+      getGradeLetter,
+      calculateAverageGrade,
+      getGradeColor,
+      
+      // Parent methods
+      getChildSubmission,
+      getChildAssignmentStatusForAssignment,
+      getChildGradeForAssignment,
+      getChildSubmissionDate,
+      getChildAssignmentStatus,
+      getUpcomingAssignments,
+      isAssignmentDueSoon,
+      getAssignmentStatusTooltip
+    };
+  }
+}).mount('#app');
+
+console.log('Vue app mounted successfully');
+
+window.addEventListener('error', function(e) {
+  console.error('JavaScript error:', e.error || e.message);
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+  console.error('Unhandled promise rejection:', e.reason);
+});
+</script>
+</body>
+</html>
+
+
+
+
